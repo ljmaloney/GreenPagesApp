@@ -9,14 +9,8 @@ plugins {
 
 kotlin {
 
-    iosX64()  // REQUIRED for your current Xcode embedding task
     iosArm64()
     iosSimulatorArm64()
-
-    iosX64().binaries.framework {
-        baseName = "Shared"
-        isStatic = true
-    }
 
     iosArm64().binaries.framework {
         baseName = "Shared"
