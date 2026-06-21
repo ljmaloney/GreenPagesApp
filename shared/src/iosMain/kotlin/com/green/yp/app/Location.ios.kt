@@ -76,7 +76,9 @@ class IOSLocationManager : LocationManager {
                 locationUpdates.first { it != null }
             }
         } finally {
-            stopLocationUpdates()
+            // We want to keep location as long as app is open, so maybe don't stop here 
+            // but the interface has stopLocationUpdates.
+            // For persistence, we keep the last value in _locationUpdates
         }
     }
 
@@ -91,8 +93,12 @@ class IOSLocationManager : LocationManager {
     override suspend fun isLocationAvailable(): Boolean {
         return true // iOS handles permission separately
     }
+
+    companion object {
+        val instance: IOSLocationManager by lazy { IOSLocationManager() }
+    }
 }
 
 actual fun getLocationManager(): LocationManager {
-    return IOSLocationManager()
+    return IOSLocationManager.instance
 }

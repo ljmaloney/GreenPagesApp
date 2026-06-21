@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +59,12 @@ fun LoadingScreen(
 ) {
     val scope = rememberCoroutineScope()
 
+    val locationManager = getLocationManager()
+    val currentLocation = locationManager.locationUpdates.collectAsState()
+
+    // Start updates immediately only when location permission/services are already available.
+    // If permissions are granted later (e.g. via Activity), MainActivity will call startLocationUpdates()
+
     val backgroundColor = Color.White
     val textColor = Color(0xFF166534)
     val statusColor = Color(0xFF4B5563)
@@ -71,6 +79,14 @@ fun LoadingScreen(
     LaunchedEffect(Unit) {
         val shuffled = businesses.shuffled()
         var index = 0
+
+        if (locationManager.isLocationAvailable()) {
+            println("DEBUG: LoadingScreen: Starting location updates")
+            locationManager.startLocationUpdates()
+        } else {
+            println("DEBUG: LoadingScreen: Location not available")
+        }
+
         val job = scope.launch {
             while (index < shuffled.size) {
                 currentBusiness = shuffled[index]
@@ -84,6 +100,7 @@ fun LoadingScreen(
 
         delay(1500)
         statusLocation = "📍 Location acquired"
+        println("DEBUG: LoadingScreen: Location acquired status set")
         delay(1500)
         statusApi = "🌱 Listings loaded"
 
@@ -118,13 +135,18 @@ fun LoadingScreen(
                 )
             )
             Spacer(modifier = Modifier.height(16.dp))
-            BasicText(
-                text = statusLocation,
-                style = TextStyle(
-                    color = statusColor,
-                    fontSize = 16.sp
+            currentLocation.value?.let {location ->
+                Text("Lat: Location Found")
+            }?:run{
+                BasicText(
+                    text = statusLocation,
+                    style = TextStyle(
+                        color = statusColor,
+                        fontSize = 16.sp
+                    )
                 )
-            )
+            }
+
             BasicText(
                 text = statusApi,
                 style = TextStyle(
