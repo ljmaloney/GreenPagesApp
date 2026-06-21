@@ -14,6 +14,10 @@ class ClassifiedViewModel(
     val categories: StateFlow<List<ClassifiedCategory>> = repository.categories
     val errorMessage: StateFlow<String?> = repository.errorMessage
 
+    init {
+        fetchCategories()
+    }
+
     fun fetchCategories() {
         println("ClassifiedViewModel: fetchCategories called")
         viewModelScope.launch {

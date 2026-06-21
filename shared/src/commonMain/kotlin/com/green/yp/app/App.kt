@@ -4,22 +4,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.green.yp.app.enum.AppStateType
+import org.koin.compose.KoinContext
 
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
-        var state by remember {
-            mutableStateOf(AppStateType.LOADING)
-        }
-        when(state) {
+    KoinContext {
+        MaterialTheme {
+            var state by remember {
+                mutableStateOf(AppStateType.LOADING)
+            }
+            when (state) {
 
-            AppStateType.LOADING ->
-                LoadingScreen(onLoadingComplete = { state = AppStateType.READY })
-            AppStateType.READY ->
-                GreenPagesMainScreen()
-            AppStateType.ERROR ->
-                ErrorScreen()
+                AppStateType.LOADING ->
+                    LoadingScreen(onLoadingComplete = { state = AppStateType.READY })
+
+                AppStateType.READY ->
+                    GreenPagesMainScreen()
+
+                AppStateType.ERROR ->
+                    ErrorScreen()
+            }
         }
     }
 }
