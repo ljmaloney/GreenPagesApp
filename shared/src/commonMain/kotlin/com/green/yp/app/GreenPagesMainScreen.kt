@@ -21,15 +21,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import org.jetbrains.compose.resources.painterResource
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.compose_multiplatform
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 @Preview
-fun GreenPagesMainScreen() {
+fun GreenPagesMainScreen(viewModel: ClassifiedViewModel = koinViewModel()) {
     val locationManager = remember { getLocationManager() }
     val userLocation by locationManager.locationUpdates.collectAsState()
+    val categories by viewModel.categories.collectAsState()
 
     MaterialTheme {
         var showContent by remember { mutableStateOf(false) }
@@ -50,7 +53,13 @@ fun GreenPagesMainScreen() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Image(painterResource(Res.drawable.compose_multiplatform), contentDescription = null)
-                    
+                    categories.firstOrNull()?.let { firstCategory ->
+                        Text(
+                            text = "First Category: ${firstCategory.name}",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     userLocation?.let { location ->
                         Text(
                             text = "Your Location: ${location.latitude}, ${location.longitude}",

@@ -6,6 +6,6 @@ import de.jensklingenberg.ktorfit.http.GET
 
 interface ClassifiedApi {
 
-    @GET("/reference/classified/categories")
+    @GET("reference/classified/categories")
     suspend fun getCategories(): ResponseWrapper<List<ClassifiedCategory>>
 }
