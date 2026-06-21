@@ -1,4 +1,4 @@
-package com.green.yp.greenpagesapp
+package com.green.yp.app
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
