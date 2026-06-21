@@ -76,6 +76,13 @@ fun LoadingScreen(
     var alpha by remember { mutableStateOf(1f) }
     val animatedAlpha by animateFloatAsState(targetValue = alpha)
 
+    LaunchedEffect(currentLocation.value) {
+        if (currentLocation.value != null) {
+            statusLocation = "📍 Location acquired"
+            println("DEBUG: LoadingScreen: Location acquired from StateFlow")
+        }
+    }
+
     LaunchedEffect(Unit) {
         val shuffled = businesses.shuffled()
         var index = 0
@@ -99,8 +106,7 @@ fun LoadingScreen(
         }
 
         delay(1500)
-        statusLocation = "📍 Location acquired"
-        println("DEBUG: LoadingScreen: Location acquired status set")
+        // statusLocation is now handled by the observer LaunchedEffect above
         delay(1500)
         statusApi = "🌱 Listings loaded"
 
