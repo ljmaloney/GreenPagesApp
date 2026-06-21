@@ -23,7 +23,7 @@ kotlin {
     }
     
     androidLibrary {
-       namespace = "com.green.yp.greenpagesapp.shared"
+       namespace = "com.green.yp.app.shared"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
     
@@ -41,6 +41,8 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
+            implementation(libs.compose.uiTooling)
+            implementation(libs.google.playServices.location)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
