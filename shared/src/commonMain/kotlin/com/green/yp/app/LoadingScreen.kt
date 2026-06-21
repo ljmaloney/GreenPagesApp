@@ -101,7 +101,7 @@ fun LoadingScreen(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(Res.drawable.green_pages_loading_splash),
-                contentDescription = "Splash Logo",
+                contentDescription = "Green Pages Logo",
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
