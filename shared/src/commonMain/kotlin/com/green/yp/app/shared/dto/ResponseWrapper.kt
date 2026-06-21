@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ResponseWrapper<T>(
     @SerialName("response")
-    val response: List<T>,
+    val response: T,
     @SerialName("errorMessageApi")
-    val errorMessageApi: ErrorMessageApi
+    val errorMessageApi: ErrorMessageApi? = null
 )
 
 @Serializable
