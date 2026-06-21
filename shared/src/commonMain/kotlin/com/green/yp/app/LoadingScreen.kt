@@ -105,7 +105,7 @@ fun LoadingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .scale(1.3f)
+                    .scale(1.0f)
             )
             Spacer(modifier = Modifier.height(32.dp))
             BasicText(
