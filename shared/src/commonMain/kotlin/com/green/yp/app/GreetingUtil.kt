@@ -1,4 +1,4 @@
-package com.green.yp.greenpagesapp
+package com.green.yp.app
 
 fun sayHello(to: String): String =
     "Hello, $to!"

@@ -1,4 +1,4 @@
-package com.green.yp.greenpagesapp
+package com.green.yp.app
 
 import android.os.Build
 
