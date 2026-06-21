@@ -1,4 +1,4 @@
-package com.green.yp.greenpagesapp
+package com.green.yp.app
 
 class Greeting {
     private val platform = getPlatform()
