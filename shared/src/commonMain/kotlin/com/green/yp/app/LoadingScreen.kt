@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import greenpagesapp.shared.generated.resources.Res
-import greenpagesapp.shared.generated.resources.green_pages_loading_splash
+import greenpagesapp.shared.generated.resources.greenyp_splash_screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -117,7 +117,7 @@ fun LoadingScreen(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(Res.drawable.green_pages_loading_splash),
+                painter = painterResource(Res.drawable.greenyp_splash_screen),
                 contentDescription = "Green Pages Logo",
                 modifier = Modifier
                     .fillMaxWidth()
