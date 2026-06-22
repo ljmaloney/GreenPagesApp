@@ -30,11 +30,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.greenyp_splash_screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 
 val defaultBusinesses: List<String> = listOf(
     "Classifieds",
@@ -55,12 +57,16 @@ val defaultBusinesses: List<String> = listOf(
 @Composable
 fun LoadingScreen(
     businesses: List<String> = defaultBusinesses,
+    viewModel: ClassifiedViewModel = koinViewModel(),
     onLoadingComplete: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
     val locationManager = getLocationManager()
     val currentLocation = locationManager.locationUpdates.collectAsState()
+
+    val categories by viewModel.categories.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     // Start updates immediately only when location permission/services are already available.
     // If permissions are granted later (e.g. via Activity), MainActivity will call startLocationUpdates()
@@ -84,6 +90,7 @@ fun LoadingScreen(
     }
 
     LaunchedEffect(Unit) {
+        viewModel.fetchCategories()
         val shuffled = businesses.shuffled()
         var index = 0
 
@@ -103,6 +110,18 @@ fun LoadingScreen(
                 index++
                 delay(650)
             }
+        }
+
+        // Wait for categories to be loaded or an error to occur
+        while (categories.isEmpty() && errorMessage == null) {
+            delay(500)
+        }
+
+        if (errorMessage != null) {
+            // Show error message in UI and do not proceed to main screen
+            statusApi = "⚠️ ${errorMessage}"
+            job.cancel()
+            return@LaunchedEffect
         }
 
         delay(1500)
@@ -160,6 +179,11 @@ fun LoadingScreen(
                     fontSize = 16.sp
                 )
             )
+        }
+        // If there's an error, show a dedicated ErrorScreen (reusable composable)
+        errorMessage?.let { msg ->
+            Spacer(modifier = Modifier.height(16.dp))
+            ErrorScreen(message = msg, onRetry = { viewModel.retry() }, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp))
         }
     }
 }
