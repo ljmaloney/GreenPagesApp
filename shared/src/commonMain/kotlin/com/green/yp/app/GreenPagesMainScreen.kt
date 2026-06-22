@@ -6,11 +6,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Email
@@ -67,44 +68,14 @@ fun GreenPagesMainScreen(viewModel: ClassifiedViewModel = koinViewModel()) {
 
     MaterialTheme {
         Scaffold(
-            bottomBar = {
-                NavigationBar(
-                    containerColor = Color.White,
-                    contentColor = DarkGreen
-                ) {
-                    navItems.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            icon = {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.label,
-                                    tint = if (selectedTab == index) DarkGreen else Color.Gray
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = item.label,
-                                    color = if (selectedTab == index) DarkGreen else Color.Gray
-                                )
-                            }
-                        )
-                    }
-                }
-            }
-        ) { paddingValues ->
-            var showContent by remember { mutableStateOf(false) }
-            Column(
-                modifier = Modifier
-                    .background(Color.White)
-                    .padding(paddingValues)
-                    .safeContentPadding()
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
+            topBar = {
                 // Menu Bar
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .statusBarsPadding()
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -133,7 +104,43 @@ fun GreenPagesMainScreen(viewModel: ClassifiedViewModel = koinViewModel()) {
                         color = DarkGreen
                     )
                 }
-
+            },
+            bottomBar = {
+                NavigationBar(
+                    containerColor = Color.White,
+                    contentColor = DarkGreen,
+                    windowInsets = WindowInsets(0.dp)
+                ) {
+                    navItems.forEachIndexed { index, item ->
+                        NavigationBarItem(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            icon = {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.label,
+                                    tint = if (selectedTab == index) DarkGreen else Color.Gray
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = item.label,
+                                    color = if (selectedTab == index) DarkGreen else Color.Gray
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        ) { paddingValues ->
+            var showContent by remember { mutableStateOf(false) }
+            Column(
+                modifier = Modifier
+                    .background(Color.White)
+                    .padding(paddingValues)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 // Content below menu bar
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = { showContent = !showContent }) {
