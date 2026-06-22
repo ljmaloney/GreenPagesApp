@@ -31,11 +31,11 @@ dependencies {
 }
 
 android {
-    namespace = "com.green.yp.greenpagesapp"
+    namespace = "com.green.yp.app"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.green.yp.greenpagesapp"
+        applicationId = "com.green.yp.app"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import org.jetbrains.compose.resources.painterResource
 import greenpagesapp.shared.generated.resources.Res
@@ -28,7 +27,6 @@ import greenpagesapp.shared.generated.resources.compose_multiplatform
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@Preview
 fun GreenPagesMainScreen(viewModel: ClassifiedViewModel = koinViewModel()) {
     val locationManager = remember { getLocationManager() }
     val userLocation by locationManager.locationUpdates.collectAsState()
