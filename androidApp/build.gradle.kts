@@ -24,14 +24,18 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
+    implementation(libs.koin.compose.viewmodel)
 }
 
 android {
-    namespace = "com.green.yp.greenpagesapp"
+    namespace = "com.green.yp.app"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.green.yp.greenpagesapp"
+        applicationId = "com.green.yp.app"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

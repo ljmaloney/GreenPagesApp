@@ -7,7 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
+import com.green.yp.app.shared.di.KoinInitializer
+
 fun MainViewController() = ComposeUIViewController { RootContent() }
+
+fun initKoin() {
+    KoinInitializer.init()
+}
 
 @Composable
 private fun RootContent() {

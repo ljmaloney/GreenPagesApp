@@ -4,5 +4,11 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>Launch Screen</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>GreenPagesApp needs your location to find nearby services.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>GreenPagesApp needs your location to find nearby services.</string>
 </dict>
 </plist>

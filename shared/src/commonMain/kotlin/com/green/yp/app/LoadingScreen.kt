@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,11 +30,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import greenpagesapp.shared.generated.resources.Res
-import greenpagesapp.shared.generated.resources.green_pages_loading_splash
+import greenpagesapp.shared.generated.resources.greenyp_splash_screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 
 val defaultBusinesses: List<String> = listOf(
     "Classifieds",
@@ -53,9 +57,19 @@ val defaultBusinesses: List<String> = listOf(
 @Composable
 fun LoadingScreen(
     businesses: List<String> = defaultBusinesses,
+    viewModel: ClassifiedViewModel = koinViewModel(),
     onLoadingComplete: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+
+    val locationManager = getLocationManager()
+    val currentLocation = locationManager.locationUpdates.collectAsState()
+
+    val categories by viewModel.categories.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    // Start updates immediately only when location permission/services are already available.
+    // If permissions are granted later (e.g. via Activity), MainActivity will call startLocationUpdates()
 
     val backgroundColor = Color.White
     val textColor = Color(0xFF166534)
@@ -68,9 +82,25 @@ fun LoadingScreen(
     var alpha by remember { mutableStateOf(1f) }
     val animatedAlpha by animateFloatAsState(targetValue = alpha)
 
+    LaunchedEffect(currentLocation.value) {
+        if (currentLocation.value != null) {
+            statusLocation = "📍 Location acquired"
+            println("DEBUG: LoadingScreen: Location acquired from StateFlow")
+        }
+    }
+
     LaunchedEffect(Unit) {
+        viewModel.fetchCategories()
         val shuffled = businesses.shuffled()
         var index = 0
+
+        if (locationManager.isLocationAvailable()) {
+            println("DEBUG: LoadingScreen: Starting location updates")
+            locationManager.startLocationUpdates()
+        } else {
+            println("DEBUG: LoadingScreen: Location not available")
+        }
+
         val job = scope.launch {
             while (index < shuffled.size) {
                 currentBusiness = shuffled[index]
@@ -82,8 +112,20 @@ fun LoadingScreen(
             }
         }
 
+        // Wait for categories to be loaded or an error to occur
+        while (categories.isEmpty() && errorMessage == null) {
+            delay(500)
+        }
+
+        if (errorMessage != null) {
+            // Show error message in UI and do not proceed to main screen
+            statusApi = "⚠️ ${errorMessage}"
+            job.cancel()
+            return@LaunchedEffect
+        }
+
         delay(1500)
-        statusLocation = "📍 Location acquired"
+        // statusLocation is now handled by the observer LaunchedEffect above
         delay(1500)
         statusApi = "🌱 Listings loaded"
 
@@ -100,7 +142,7 @@ fun LoadingScreen(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(Res.drawable.green_pages_loading_splash),
+                painter = painterResource(Res.drawable.greenyp_splash_screen),
                 contentDescription = "Green Pages Logo",
                 modifier = Modifier
                     .fillMaxWidth()
@@ -118,13 +160,18 @@ fun LoadingScreen(
                 )
             )
             Spacer(modifier = Modifier.height(16.dp))
-            BasicText(
-                text = statusLocation,
-                style = TextStyle(
-                    color = statusColor,
-                    fontSize = 16.sp
+            currentLocation.value?.let {location ->
+                Text("Lat: Location Found")
+            }?:run{
+                BasicText(
+                    text = statusLocation,
+                    style = TextStyle(
+                        color = statusColor,
+                        fontSize = 16.sp
+                    )
                 )
-            )
+            }
+
             BasicText(
                 text = statusApi,
                 style = TextStyle(
@@ -132,6 +179,11 @@ fun LoadingScreen(
                     fontSize = 16.sp
                 )
             )
+        }
+        // If there's an error, show a dedicated ErrorScreen (reusable composable)
+        errorMessage?.let { msg ->
+            Spacer(modifier = Modifier.height(16.dp))
+            ErrorScreen(message = msg, onRetry = { viewModel.retry() }, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp))
         }
     }
 }

@@ -1,9 +1,9 @@
-package com.green.yp.greenpagesapp
+package com.green.yp.app
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class SharedCommonTest {
+class SharedLogicAndroidHostTest {
 
     @Test
     fun example() {
