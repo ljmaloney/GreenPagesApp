@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.green.yp.app.components.GreenPagesBottomBar
 import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
-import com.green.yp.screens.HomeScreen
+import com.green.yp.app.screens.HomeScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Preview

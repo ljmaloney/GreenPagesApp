@@ -1,4 +1,4 @@
-package com.green.yp.screens
+package com.green.yp.app.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
