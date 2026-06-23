@@ -30,6 +30,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.green.yp.app.screens.ErrorScreen
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.greenyp_splash_screen
@@ -183,7 +184,11 @@ fun LoadingScreen(
         // If there's an error, show a dedicated ErrorScreen (reusable composable)
         errorMessage?.let { msg ->
             Spacer(modifier = Modifier.height(16.dp))
-            ErrorScreen(message = msg, onRetry = { viewModel.retry() }, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp))
+            ErrorScreen(
+                message = msg,
+                onRetry = { viewModel.retry() },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            )
         }
     }
 }

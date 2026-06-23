@@ -22,10 +22,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.Greeting
+import com.green.yp.app.UserLocation
 import com.green.yp.app.getLocationManager
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.compose_multiplatform
 import org.jetbrains.compose.resources.painterResource
@@ -40,6 +43,23 @@ fun HomeScreen(
     val categories by viewModel.categories.collectAsState()
     var showContent by remember { mutableStateOf(false) }
 
+    HomeScreenContent(
+        paddingValues = paddingValues,
+        categories = categories,
+        userLocation = userLocation,
+        showContent = showContent,
+        onShowContentToggle = { showContent = !showContent }
+    )
+}
+
+@Composable
+fun HomeScreenContent(
+    paddingValues: PaddingValues,
+    categories: List<ClassifiedCategory>,
+    userLocation: UserLocation?,
+    showContent: Boolean,
+    onShowContentToggle: () -> Unit
+) {
     Column(
         modifier = Modifier
             .background(Color.White)
@@ -49,7 +69,7 @@ fun HomeScreen(
     ) {
         // Content below menu bar
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { showContent = !showContent }) {
+        Button(onClick = onShowContentToggle) {
             Text("Click me!")
         }
         AnimatedVisibility(showContent) {
@@ -82,4 +102,16 @@ fun HomeScreen(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun HomeScreenPreview() {
+    HomeScreenContent(
+        paddingValues = PaddingValues(16.dp),
+        categories = emptyList(),
+        userLocation = null,
+        showContent = true,
+        onShowContentToggle = {}
+    )
 }
