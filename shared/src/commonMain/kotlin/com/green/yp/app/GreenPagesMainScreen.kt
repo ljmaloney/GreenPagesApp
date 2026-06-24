@@ -12,10 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.fillMaxSize
 import com.green.yp.app.components.GreenPagesBottomBar
 import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.screens.HomeScreen
+import com.green.yp.app.screens.SearchScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Preview
@@ -25,9 +27,10 @@ fun GreenPagesMainScreen(viewModel: ClassifiedViewModel = koinViewModel()) {
 
     MaterialTheme {
         Scaffold(
+            modifier = Modifier.fillMaxSize(),
             topBar = {
                 GreenPagesTopBar(
-                    onSearchClick = { /* TODO: Search action */ }
+                    onSearchClick = { selectedTab = 1 }
                 )
             },
             bottomBar = {
@@ -39,6 +42,7 @@ fun GreenPagesMainScreen(viewModel: ClassifiedViewModel = koinViewModel()) {
         ) { paddingValues ->
             when (selectedTab) {
                 0 -> HomeScreen(paddingValues, viewModel)
+                1 -> SearchScreen(paddingValues = paddingValues)
                 else -> {
                     // TODO: Other screens
                     Column(modifier = Modifier.padding(paddingValues)) {

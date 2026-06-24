@@ -1,6 +1,7 @@
 package com.green.yp.app.components
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Email
@@ -13,6 +14,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,7 +39,7 @@ fun GreenPagesBottomBar(
     NavigationBar(
         containerColor = Color.White,
         contentColor = DarkGreen,
-        windowInsets = WindowInsets(0.dp)
+        modifier = Modifier.navigationBarsPadding()
     ) {
         navItems.forEachIndexed { index, item ->
             val isSelected = selectedTab == index

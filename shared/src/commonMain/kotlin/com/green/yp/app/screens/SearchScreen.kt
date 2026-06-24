@@ -2,6 +2,8 @@ package com.green.yp.app.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,13 +13,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,32 +34,72 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.UserLocation
 import com.green.yp.app.getLocationManager
+import com.green.yp.app.shared.dto.classified.ClassifiedCategory
+import com.green.yp.app.shared.dto.reference.LineOfBusiness
+import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ReferenceViewModel
+import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
+import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.round
+
+data class SearchCategory(val id: String, val name: String)
 
 @Preview
 @Composable
-fun SearchScreen(
-    paddingValues: PaddingValues = PaddingValues(16.dp)
+fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
+                 referenceViewModel: ReferenceViewModel = koinViewModel(),
+                 paddingValues: PaddingValues = PaddingValues(16.dp)
 ) {
     val locationManager = remember { getLocationManager() }
     val userLocation by locationManager.locationUpdates.collectAsState()
+    val classifiedCategories by classifiedView.categories.collectAsState()
+    val linesOfBusiness by referenceViewModel.linesOfBusiness.collectAsState()
 
+    var stableLocation by remember { mutableStateOf<UserLocation?>(null) }
+
+    LaunchedEffect(Unit) {
+        classifiedView.fetchCategories()
+        referenceViewModel.fetchLinesOfBusiness()
+    }
+
+    LaunchedEffect(userLocation) {
+        if (stableLocation == null && userLocation != null) {
+            stableLocation = UserLocation(
+                latitude = round(userLocation!!.latitude * 10000.0) / 10000.0,
+                longitude = round(userLocation!!.longitude * 10000.0) / 10000.0
+            )
+        }
+    }
+
+    val combinedCategories = remember(classifiedCategories, linesOfBusiness) {
+        (classifiedCategories.map { category: ClassifiedCategory -> 
+            SearchCategory(category.categoryId.toString(), category.name) 
+        } + linesOfBusiness.map { lob: LineOfBusiness -> 
+            SearchCategory(lob.lineOfBusinessId.toString(), lob.lineOfBusinessName) 
+        })
+            .sortedBy { it.name }
+    }
+    
     SearchScreenContent(
         paddingValues = paddingValues,
-        userLocation = userLocation
+        userLocation = stableLocation,
+        categories = combinedCategories
     )
 }
 
 @Composable
 fun SearchScreenContent(
     paddingValues: PaddingValues,
-    userLocation: UserLocation?
+    userLocation: UserLocation?,
+    categories: List<SearchCategory> = emptyList()
 ) {
     var keywords by remember { mutableStateOf("") }
     var zipCode by remember { mutableStateOf("") }
     var selectedDistance by remember { mutableStateOf(10) }
     var distanceExpanded by remember { mutableStateOf(false) }
-    var categoryRef by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<SearchCategory?>(null) }
+    var categoryExpanded by remember { mutableStateOf(false) }
 
     val distanceOptions = listOf(
         10 to "10 miles",
@@ -66,6 +110,9 @@ fun SearchScreenContent(
 
     val isZipCodeRequired = userLocation == null
     val isFormValid = selectedDistance > 0 && (zipCode.isNotEmpty() || userLocation != null)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val buttonColor = if (isPressed) DarkGold else DarkGreen
 
     Column(
         modifier = Modifier
@@ -77,26 +124,10 @@ fun SearchScreenContent(
     ) {
         Text(
             text = "Filter Providers",
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 24.dp),
             color = DarkGreen
         )
-
-        // Keywords TextField
-        OutlinedTextField(
-            value = keywords,
-            onValueChange = { keywords = it },
-            label = { Text("Keywords (Optional)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                unfocusedLabelColor = DarkGreen,
-                focusedLabelColor = DarkGreen,
-                unfocusedTextColor = DarkGreen,
-                focusedTextColor = DarkGreen
-            )
-        )
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Zip Code TextField
         OutlinedTextField(
@@ -124,47 +155,68 @@ fun SearchScreenContent(
                     )
                 }
             },
-            colors = TextFieldDefaults.colors(
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                errorTextColor = Color.Black,
+                focusedLabelColor = DarkGold,
                 unfocusedLabelColor = DarkGreen,
-                focusedLabelColor = DarkGreen,
-                unfocusedTextColor = DarkGreen,
-                focusedTextColor = DarkGreen
+                errorLabelColor = Color.Red,
+                focusedBorderColor = DarkGold,
+                unfocusedBorderColor = DarkGreen,
+                errorBorderColor = Color.Red,
+                cursorColor = DarkGold,
+                errorCursorColor = Color.Red
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Distance Dropdown
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { distanceExpanded = !distanceExpanded }
-        ) {
-            DistanceDropdown(
-                selectedDistance = selectedDistance,
-                onDistanceSelected = { selectedDistance = it },
-                distanceOptions = distanceOptions,
-                isExpanded = distanceExpanded,
-                onExpandedChange = { distanceExpanded = it }
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Category Ref TextField (Placeholder, Disabled)
+        // Keywords TextField
         OutlinedTextField(
-            value = categoryRef,
-            onValueChange = { categoryRef = it },
-            label = { Text("Category (Coming soon)") },
+            value = keywords,
+            onValueChange = { keywords = it },
+            label = { Text("Keywords (Optional)") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            enabled = false,
-            placeholder = { Text("Placeholder - Feature coming soon") },
-            colors = TextFieldDefaults.colors(
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                errorTextColor = Color.Black,
+                focusedLabelColor = DarkGold,
                 unfocusedLabelColor = DarkGreen,
-                focusedLabelColor = DarkGreen,
-                unfocusedTextColor = DarkGreen,
-                focusedTextColor = DarkGreen,
-                disabledTextColor = DarkGreen,
-                disabledLabelColor = DarkGreen)
+                errorLabelColor = Color.Red,
+                focusedBorderColor = DarkGold,
+                unfocusedBorderColor = DarkGreen,
+                errorBorderColor = Color.Red,
+                cursorColor = DarkGold,
+                errorCursorColor = Color.Red
+            )
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+
+
+        // Distance Dropdown
+        DistanceDropdown(
+            selectedDistance = selectedDistance,
+            onDistanceSelected = { selectedDistance = it },
+            distanceOptions = distanceOptions,
+            isExpanded = distanceExpanded,
+            onExpandedChange = { distanceExpanded = it }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Category Dropdown
+        CategoryDropdown(
+            selectedCategory = selectedCategory,
+            onCategorySelected = { selectedCategory = it },
+            categories = categories,
+            isExpanded = categoryExpanded,
+            onExpandedChange = { categoryExpanded = it }
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -175,9 +227,82 @@ fun SearchScreenContent(
                 .align(Alignment.CenterHorizontally)
                 .fillMaxWidth(),
             enabled = isFormValid,
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = buttonColor,
+                contentColor = Color.White,
+                disabledContainerColor = Color.LightGray,
+                disabledContentColor = Color.White
+            ),
+            interactionSource = interactionSource
         ) {
             Text("Search")
+        }
+    }
+}
+
+@Composable
+fun CategoryDropdown(
+    selectedCategory: SearchCategory?,
+    onCategorySelected: (SearchCategory) -> Unit,
+    categories: List<SearchCategory>,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit
+) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = selectedCategory?.name ?: "Select category",
+            onValueChange = {},
+            label = { Text("Category (Optional)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            readOnly = true,
+            trailingIcon = {
+                Text(if (isExpanded) "▲" else "▼", modifier = Modifier.padding(end = 12.dp), color = DarkGreen)
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                errorTextColor = Color.Black,
+                focusedLabelColor = DarkGold,
+                unfocusedLabelColor = DarkGreen,
+                errorLabelColor = Color.Red,
+                focusedBorderColor = DarkGold,
+                unfocusedBorderColor = DarkGreen,
+                errorBorderColor = Color.Red,
+                cursorColor = DarkGold,
+                errorCursorColor = Color.Red,
+                disabledContainerColor = Color.White,
+                disabledTextColor = Color.Black,
+                disabledLabelColor = DarkGreen,
+                disabledBorderColor = DarkGreen
+            )
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(
+                    onClick = { onExpandedChange(!isExpanded) }
+                )
+        )
+        DropdownMenu(
+            expanded = isExpanded,
+            onDismissRequest = { onExpandedChange(false) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
+        ) {
+            categories.forEach { category ->
+                DropdownMenuItem(
+                    text = { Text(category.name) },
+                    onClick = {
+                        onCategorySelected(category)
+                        onExpandedChange(false)
+                    }
+                )
+            }
         }
     }
 }
@@ -190,7 +315,7 @@ fun DistanceDropdown(
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = distanceOptions.find { it.first == selectedDistance }?.second ?: "Select distance",
             onValueChange = {},
@@ -201,19 +326,39 @@ fun DistanceDropdown(
             trailingIcon = {
                 Text(if (isExpanded) "▲" else "▼", modifier = Modifier.padding(end = 12.dp), color = DarkGreen)
             },
-            colors = TextFieldDefaults.colors(
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                errorTextColor = Color.Black,
+                focusedLabelColor = DarkGold,
                 unfocusedLabelColor = DarkGreen,
-                focusedLabelColor = DarkGreen,
-                unfocusedTextColor = DarkGreen,
-                focusedTextColor = DarkGreen,
-                disabledTextColor = DarkGreen,
-                disabledLabelColor = DarkGreen
+                errorLabelColor = Color.Red,
+                focusedBorderColor = DarkGold,
+                unfocusedBorderColor = DarkGreen,
+                errorBorderColor = Color.Red,
+                cursorColor = DarkGold,
+                errorCursorColor = Color.Red,
+                disabledContainerColor = Color.White,
+                disabledTextColor = Color.Black,
+                disabledLabelColor = DarkGreen,
+                disabledBorderColor = DarkGreen
             )
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(
+                    onClick = { onExpandedChange(!isExpanded) }
+                )
         )
         DropdownMenu(
             expanded = isExpanded,
             onDismissRequest = { onExpandedChange(false) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
         ) {
             distanceOptions.forEach { (value, label) ->
                 DropdownMenuItem(
@@ -233,7 +378,12 @@ fun DistanceDropdown(
 fun SearchScreenPreview() {
     SearchScreenContent(
         paddingValues = PaddingValues(16.dp),
-        userLocation = null
+        userLocation = null,
+        categories = listOf(
+            SearchCategory("1", "Automotive"),
+            SearchCategory("2", "Beauty"),
+            SearchCategory("3", "Electronics")
+        )
     )
 }
 
@@ -242,6 +392,11 @@ fun SearchScreenPreview() {
 fun SearchScreenWithLocationPreview() {
     SearchScreenContent(
         paddingValues = PaddingValues(16.dp),
-        userLocation = UserLocation(latitude = 40.7128, longitude = -74.0060)
+        userLocation = UserLocation(latitude = 40.7128, longitude = -74.0060),
+        categories = listOf(
+            SearchCategory("1", "Automotive"),
+            SearchCategory("2", "Beauty"),
+            SearchCategory("3", "Electronics")
+        )
     )
 }
