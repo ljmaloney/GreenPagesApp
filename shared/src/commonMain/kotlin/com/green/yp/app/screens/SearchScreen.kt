@@ -44,6 +44,7 @@ import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.round
 import kotlin.uuid.Uuid
@@ -63,8 +64,8 @@ fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
     var stableLocation by remember { mutableStateOf<UserLocation?>(null) }
 
     LaunchedEffect(Unit) {
-        classifiedView.fetchCategories()
-        referenceViewModel.fetchLinesOfBusiness()
+        launch { classifiedView.fetchCategories() }
+        launch { referenceViewModel.fetchLinesOfBusiness() }
     }
 
     LaunchedEffect(userLocation) {
