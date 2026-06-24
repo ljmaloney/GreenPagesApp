@@ -1,10 +1,12 @@
 package com.green.yp.app.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -23,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,10 +46,10 @@ import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.round
+import kotlin.uuid.Uuid
 
-data class SearchCategory(val id: String, val name: String)
+data class SearchCategory(val id: Uuid, val name: String)
 
-@Preview
 @Composable
 fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
                  referenceViewModel: ReferenceViewModel = koinViewModel(),
@@ -72,13 +76,15 @@ fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
         }
     }
 
-    val combinedCategories = remember(classifiedCategories, linesOfBusiness) {
-        (classifiedCategories.map { category: ClassifiedCategory -> 
-            SearchCategory(category.categoryId.toString(), category.name) 
-        } + linesOfBusiness.map { lob: LineOfBusiness -> 
-            SearchCategory(lob.lineOfBusinessId.toString(), lob.lineOfBusinessName) 
-        })
-            .sortedBy { it.name }
+    val combinedCategories by remember(classifiedCategories, linesOfBusiness) {
+        derivedStateOf {
+            (classifiedCategories.map { category: ClassifiedCategory -> 
+                SearchCategory(category.categoryId, category.name) 
+            } + linesOfBusiness.map { lob: LineOfBusiness -> 
+                SearchCategory(lob.lineOfBusinessId, lob.lineOfBusinessName) 
+            })
+                .sortedBy { it.name }
+        }
     }
     
     SearchScreenContent(
@@ -249,7 +255,8 @@ fun CategoryDropdown(
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val width = maxWidth
         OutlinedTextField(
             value = selectedCategory?.name ?: "Select category",
             onValueChange = {},
@@ -291,16 +298,24 @@ fun CategoryDropdown(
             expanded = isExpanded,
             onDismissRequest = { onExpandedChange(false) },
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp)
+                .width(width)
+                .background(Color.White)
+                .border(1.dp, DarkGreen, MaterialTheme.shapes.extraSmall)
         ) {
             categories.forEach { category ->
+                val isSelected = selectedCategory?.id == category.id
                 DropdownMenuItem(
-                    text = { Text(category.name) },
+                    text = {
+                        Text(
+                            text = category.name,
+                            color = if (isSelected) Color.White else Color.Black
+                        )
+                    },
                     onClick = {
                         onCategorySelected(category)
                         onExpandedChange(false)
-                    }
+                    },
+                    modifier = Modifier.background(if (isSelected) DarkGold else Color.Transparent)
                 )
             }
         }
@@ -315,7 +330,8 @@ fun DistanceDropdown(
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val width = maxWidth
         OutlinedTextField(
             value = distanceOptions.find { it.first == selectedDistance }?.second ?: "Select distance",
             onValueChange = {},
@@ -357,16 +373,24 @@ fun DistanceDropdown(
             expanded = isExpanded,
             onDismissRequest = { onExpandedChange(false) },
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp)
+                .width(width)
+                .background(Color.White)
+                .border(1.dp, DarkGreen, MaterialTheme.shapes.extraSmall)
         ) {
             distanceOptions.forEach { (value, label) ->
+                val isSelected = value == selectedDistance
                 DropdownMenuItem(
-                    text = { Text(label) },
+                    text = {
+                        Text(
+                            text = label,
+                            color = if (isSelected) Color.White else Color.Black
+                        )
+                    },
                     onClick = {
                         onDistanceSelected(value)
                         onExpandedChange(false)
-                    }
+                    },
+                    modifier = Modifier.background(if (isSelected) DarkGold else Color.Transparent)
                 )
             }
         }
@@ -380,9 +404,9 @@ fun SearchScreenPreview() {
         paddingValues = PaddingValues(16.dp),
         userLocation = null,
         categories = listOf(
-            SearchCategory("1", "Automotive"),
-            SearchCategory("2", "Beauty"),
-            SearchCategory("3", "Electronics")
+            SearchCategory(Uuid.random(), "Automotive"),
+            SearchCategory(Uuid.random(), "Beauty"),
+            SearchCategory(Uuid.random(), "Electronics")
         )
     )
 }
@@ -394,9 +418,9 @@ fun SearchScreenWithLocationPreview() {
         paddingValues = PaddingValues(16.dp),
         userLocation = UserLocation(latitude = 40.7128, longitude = -74.0060),
         categories = listOf(
-            SearchCategory("1", "Automotive"),
-            SearchCategory("2", "Beauty"),
-            SearchCategory("3", "Electronics")
+            SearchCategory(Uuid.random(), "Automotive"),
+            SearchCategory(Uuid.random(), "Beauty"),
+            SearchCategory(Uuid.random(), "Electronics")
         )
     )
 }
