@@ -29,5 +29,5 @@ data class LineOfBusiness(
     @SerialName("iconName")
     val iconName: String,
     @SerialName("iconFileName")
-    val iconFileName: String
+    val iconFileName: String? = null
 )
