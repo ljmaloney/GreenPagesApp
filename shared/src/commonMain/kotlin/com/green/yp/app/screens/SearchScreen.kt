@@ -51,7 +51,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.round
 import kotlin.uuid.Uuid
 
-data class SearchCategory(val id: Uuid, val name: String)
+data class SearchCategory(val id: Uuid, val name: String?)
 
 @Composable
 fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
@@ -299,7 +299,7 @@ fun CategoryDropdown(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = category.name,
+                            text = category.name!!,
                             color = if (isSelected) Color.White else Color.Black
                         )
                     },
