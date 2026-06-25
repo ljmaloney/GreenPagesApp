@@ -22,6 +22,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -103,17 +105,9 @@ fun SearchScreenContent(
 ) {
     var keywords by remember { mutableStateOf("") }
     var zipCode by remember { mutableStateOf("") }
-    var selectedDistance by remember { mutableStateOf(10) }
-    var distanceExpanded by remember { mutableStateOf(false) }
+    var selectedDistance by remember { mutableStateOf(10f) }
     var selectedCategory by remember { mutableStateOf<SearchCategory?>(null) }
     var categoryExpanded by remember { mutableStateOf(false) }
-
-    val distanceOptions = listOf(
-        10 to "10 miles",
-        25 to "25 miles",
-        50 to "50 miles",
-        100 to "100 miles"
-    )
 
     val isZipCodeRequired = userLocation == null
     val isFormValid = selectedDistance > 0 && (zipCode.isNotEmpty() || userLocation != null)
@@ -207,13 +201,10 @@ fun SearchScreenContent(
 
 
 
-        // Distance Dropdown
-        DistanceDropdown(
+        // Distance Slider
+        DistanceSlider(
             selectedDistance = selectedDistance,
-            onDistanceSelected = { selectedDistance = it },
-            distanceOptions = distanceOptions,
-            isExpanded = distanceExpanded,
-            onExpandedChange = { distanceExpanded = it }
+            onDistanceChange = { selectedDistance = it }
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -324,77 +315,28 @@ fun CategoryDropdown(
 }
 
 @Composable
-fun DistanceDropdown(
-    selectedDistance: Int,
-    onDistanceSelected: (Int) -> Unit,
-    distanceOptions: List<Pair<Int, String>>,
-    isExpanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit
+fun DistanceSlider(
+    selectedDistance: Float,
+    onDistanceChange: (Float) -> Unit
 ) {
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val width = maxWidth
-        OutlinedTextField(
-            value = distanceOptions.find { it.first == selectedDistance }?.second ?: "Select distance",
-            onValueChange = {},
-            label = { Text("Distance (Required)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            readOnly = true,
-            trailingIcon = {
-                Text(if (isExpanded) "▲" else "▼", modifier = Modifier.padding(end = 12.dp), color = DarkGreen)
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                errorTextColor = Color.Black,
-                focusedLabelColor = DarkGold,
-                unfocusedLabelColor = DarkGreen,
-                errorLabelColor = Color.Red,
-                focusedBorderColor = DarkGold,
-                unfocusedBorderColor = DarkGreen,
-                errorBorderColor = Color.Red,
-                cursorColor = DarkGold,
-                errorCursorColor = Color.Red,
-                disabledContainerColor = Color.White,
-                disabledTextColor = Color.Black,
-                disabledLabelColor = DarkGreen,
-                disabledBorderColor = DarkGreen
-            )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Distance: ${selectedDistance.toInt()} miles",
+            style = MaterialTheme.typography.bodyLarge,
+            color = DarkGreen
         )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .clickable(
-                    onClick = { onExpandedChange(!isExpanded) }
-                )
+        Slider(
+            value = selectedDistance,
+            onValueChange = onDistanceChange,
+            valueRange = 1f..100f,
+            steps = 99,
+            colors = SliderDefaults.colors(
+                thumbColor = DarkGold,
+                activeTrackColor = DarkGreen,
+                inactiveTrackColor = Color.LightGray
+            ),
+            modifier = Modifier.fillMaxWidth()
         )
-        DropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = { onExpandedChange(false) },
-            modifier = Modifier
-                .width(width)
-                .background(Color.White)
-                .border(1.dp, DarkGreen, MaterialTheme.shapes.extraSmall)
-        ) {
-            distanceOptions.forEach { (value, label) ->
-                val isSelected = value == selectedDistance
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = label,
-                            color = if (isSelected) Color.White else Color.Black
-                        )
-                    },
-                    onClick = {
-                        onDistanceSelected(value)
-                        onExpandedChange(false)
-                    },
-                    modifier = Modifier.background(if (isSelected) DarkGold else Color.Transparent)
-                )
-            }
-        }
     }
 }
 
