@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.swmansion.kmpwheelpicker.WheelPicker
+import com.swmansion.kmpwheelpicker.rememberWheelPickerState
 import com.green.yp.app.UserLocation
 import com.green.yp.app.getLocationManager
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
@@ -104,7 +106,6 @@ fun SearchScreenContent(
     var keywords by remember { mutableStateOf("") }
     var zipCode by remember { mutableStateOf("") }
     var selectedDistance by remember { mutableStateOf(10) }
-    var distanceExpanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<SearchCategory?>(null) }
     var categoryExpanded by remember { mutableStateOf(false) }
 
@@ -207,13 +208,11 @@ fun SearchScreenContent(
 
 
 
-        // Distance Dropdown
-        DistanceDropdown(
+        // Distance Wheel Picker
+        DistanceWheelPicker(
             selectedDistance = selectedDistance,
             onDistanceSelected = { selectedDistance = it },
-            distanceOptions = distanceOptions,
-            isExpanded = distanceExpanded,
-            onExpandedChange = { distanceExpanded = it }
+            distanceOptions = distanceOptions
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -324,75 +323,65 @@ fun CategoryDropdown(
 }
 
 @Composable
-fun DistanceDropdown(
+fun DistanceWheelPicker(
     selectedDistance: Int,
     onDistanceSelected: (Int) -> Unit,
-    distanceOptions: List<Pair<Int, String>>,
-    isExpanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit
+    distanceOptions: List<Pair<Int, String>>
 ) {
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val width = maxWidth
-        OutlinedTextField(
-            value = distanceOptions.find { it.first == selectedDistance }?.second ?: "Select distance",
-            onValueChange = {},
-            label = { Text("Distance (Required)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            readOnly = true,
-            trailingIcon = {
-                Text(if (isExpanded) "▲" else "▼", modifier = Modifier.padding(end = 12.dp), color = DarkGreen)
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                errorTextColor = Color.Black,
-                focusedLabelColor = DarkGold,
-                unfocusedLabelColor = DarkGreen,
-                errorLabelColor = Color.Red,
-                focusedBorderColor = DarkGold,
-                unfocusedBorderColor = DarkGreen,
-                errorBorderColor = Color.Red,
-                cursorColor = DarkGold,
-                errorCursorColor = Color.Red,
-                disabledContainerColor = Color.White,
-                disabledTextColor = Color.Black,
-                disabledLabelColor = DarkGreen,
-                disabledBorderColor = DarkGreen
-            )
+    val selectedIndex = distanceOptions.indexOfFirst { it.first == selectedDistance }.coerceAtLeast(0)
+    val wheelPickerState = rememberWheelPickerState(
+        itemCount = distanceOptions.size,
+        initialIndex = selectedIndex
+    )
+
+    LaunchedEffect(selectedDistance) {
+        val targetIndex = distanceOptions.indexOfFirst { it.first == selectedDistance }.coerceAtLeast(0)
+        if (wheelPickerState.index != targetIndex) {
+            wheelPickerState.scrollTo(targetIndex.toFloat())
+        }
+    }
+
+    LaunchedEffect(wheelPickerState.index) {
+        onDistanceSelected(distanceOptions[wheelPickerState.index].first)
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Distance (Required)",
+            color = DarkGreen,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
         Box(
             modifier = Modifier
-                .matchParentSize()
-                .clickable(
-                    onClick = { onExpandedChange(!isExpanded) }
-                )
-        )
-        DropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = { onExpandedChange(false) },
-            modifier = Modifier
-                .width(width)
-                .background(Color.White)
+                .fillMaxWidth()
+                .height(140.dp)
                 .border(1.dp, DarkGreen, MaterialTheme.shapes.extraSmall)
+                .background(Color.White)
         ) {
-            distanceOptions.forEach { (value, label) ->
-                val isSelected = value == selectedDistance
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = label,
-                            color = if (isSelected) Color.White else Color.Black
-                        )
-                    },
-                    onClick = {
-                        onDistanceSelected(value)
-                        onExpandedChange(false)
-                    },
-                    modifier = Modifier.background(if (isSelected) DarkGold else Color.Transparent)
-                )
+            WheelPicker(
+                state = wheelPickerState,
+                modifier = Modifier.fillMaxSize(),
+                window = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(36.dp)
+                            .border(1.dp, DarkGold, MaterialTheme.shapes.extraSmall)
+                    )
+                }
+            ) { index ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(36.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = distanceOptions[index].second,
+                        color = if (index == wheelPickerState.index) DarkGold else Color.Black
+                    )
+                }
             }
         }
     }
