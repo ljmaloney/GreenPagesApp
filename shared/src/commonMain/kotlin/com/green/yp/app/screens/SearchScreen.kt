@@ -22,8 +22,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.UserLocation
+import com.green.yp.app.components.DistanceWheelPicker
 import com.green.yp.app.getLocationManager
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.dto.reference.LineOfBusiness
@@ -201,8 +200,8 @@ fun SearchScreenContent(
 
 
 
-        // Distance Slider
-        DistanceSlider(
+        // Distance Wheel Picker
+        DistanceWheelPicker(
             selectedDistance = selectedDistance,
             onDistanceChange = { selectedDistance = it }
         )
@@ -311,32 +310,6 @@ fun CategoryDropdown(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun DistanceSlider(
-    selectedDistance: Float,
-    onDistanceChange: (Float) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Distance: ${selectedDistance.toInt()} miles",
-            style = MaterialTheme.typography.bodyLarge,
-            color = DarkGreen
-        )
-        Slider(
-            value = selectedDistance,
-            onValueChange = onDistanceChange,
-            valueRange = 1f..100f,
-            steps = 99,
-            colors = SliderDefaults.colors(
-                thumbColor = DarkGold,
-                activeTrackColor = DarkGreen,
-                inactiveTrackColor = Color.LightGray
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
 
