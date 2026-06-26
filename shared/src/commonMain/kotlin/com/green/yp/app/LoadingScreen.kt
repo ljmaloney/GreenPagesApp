@@ -30,7 +30,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.green.yp.app.screens.ErrorScreen
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.greenyp_splash_screen
 import kotlinx.coroutines.delay
@@ -58,6 +60,7 @@ val defaultBusinesses: List<String> = listOf(
 fun LoadingScreen(
     businesses: List<String> = defaultBusinesses,
     viewModel: ClassifiedViewModel = koinViewModel(),
+    referenceViewModel: ReferenceViewModel = koinViewModel(),
     onLoadingComplete: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -67,6 +70,8 @@ fun LoadingScreen(
 
     val categories by viewModel.categories.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+
+    val lineOfBusiness by referenceViewModel.linesOfBusiness.collectAsState()
 
     // Start updates immediately only when location permission/services are already available.
     // If permissions are granted later (e.g. via Activity), MainActivity will call startLocationUpdates()
@@ -90,7 +95,8 @@ fun LoadingScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.fetchCategories()
+        launch { viewModel.fetchCategories() }
+        launch { referenceViewModel.fetchLinesOfBusiness() }
         val shuffled = businesses.shuffled()
         var index = 0
 
@@ -183,7 +189,11 @@ fun LoadingScreen(
         // If there's an error, show a dedicated ErrorScreen (reusable composable)
         errorMessage?.let { msg ->
             Spacer(modifier = Modifier.height(16.dp))
-            ErrorScreen(message = msg, onRetry = { viewModel.retry() }, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp))
+            ErrorScreen(
+                message = msg,
+                onRetry = { viewModel.retry() },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            )
         }
     }
 }

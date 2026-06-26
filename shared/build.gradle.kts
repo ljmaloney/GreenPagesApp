@@ -13,15 +13,9 @@ plugins {
 kotlin {
 
     iosArm64()
-    iosX64()
     iosSimulatorArm64()
 
     iosArm64().binaries.framework {
-        baseName = "Shared"
-        isStatic = true
-    }
-
-    iosX64().binaries.framework {
         baseName = "Shared"
         isStatic = true
     }
@@ -61,8 +55,10 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
+            implementation(libs.compose.icons.extended)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
+            implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.ktor.client.core)
@@ -85,6 +81,5 @@ dependencies {
     add("kspCommonMainMetadata", libs.ktorfit.lib)
     add("kspAndroid", libs.ktorfit.lib)
     add("kspIosArm64", libs.ktorfit.lib)
-    add("kspIosX64", libs.ktorfit.lib)
     add("kspIosSimulatorArm64", libs.ktorfit.lib)
 }
