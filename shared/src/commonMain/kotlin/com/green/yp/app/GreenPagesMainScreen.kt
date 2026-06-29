@@ -16,13 +16,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import com.green.yp.app.components.GreenPagesBottomBar
 import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
-import com.green.yp.app.screens.HomeScreen
+import com.green.yp.app.shared.viewmodel.SearchViewModel
+import com.green.yp.app.screens.ExploreMarketResultsScreen
 import com.green.yp.app.screens.SearchScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Preview
 @Composable
-fun GreenPagesMainScreen(viewModel: ClassifiedViewModel = koinViewModel()) {
+fun GreenPagesMainScreen(
+    searchViewModel: SearchViewModel = koinViewModel()
+) {
     var selectedTab by remember { mutableStateOf(0) }
 
     MaterialTheme {
@@ -41,7 +44,7 @@ fun GreenPagesMainScreen(viewModel: ClassifiedViewModel = koinViewModel()) {
             }
         ) { paddingValues ->
             when (selectedTab) {
-                0 -> HomeScreen(paddingValues, viewModel)
+                0 -> ExploreMarketResultsScreen(paddingValues, viewModel = searchViewModel)
                 1 -> SearchScreen(paddingValues = paddingValues)
                 else -> {
                     // TODO: Other screens
