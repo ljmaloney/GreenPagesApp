@@ -17,21 +17,37 @@ class SearchViewModel(
 
     fun search(
         zipCode: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null,
         keywords: String? = null,
         categoryRefId: String? = null,
         distance: Int? = null,
         page: Int? = 0,
         limit: Int? = 15
     ) {
-        viewModelScope.launch {
-            repository.search(
-                zipCode = zipCode,
-                keywords = keywords,
-                categoryRefId = categoryRefId,
-                distance = distance,
-                page = page,
-                limit = limit
-            )
+        if ( latitude != null && longitude != null){
+            viewModelScope.launch {
+                repository.search(
+                    latitude = latitude,
+                    longitude = longitude,
+                    keywords = keywords,
+                    categoryRefId = categoryRefId,
+                    distance = distance,
+                    page = page,
+                    limit = limit
+                )
+            }
+        } else {
+            viewModelScope.launch {
+                repository.search(
+                    zipCode = zipCode,
+                    keywords = keywords,
+                    categoryRefId = categoryRefId,
+                    distance = distance,
+                    page = page,
+                    limit = limit
+                )
+            }
         }
     }
 }
