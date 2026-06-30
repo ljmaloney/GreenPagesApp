@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -90,11 +91,13 @@ fun MarketResultView(
                                 color = DarkGreen,
                                 fontWeight = FontWeight.Bold
                             )
-                            Text(
-                                text = result.title,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
-                            )
+                            if (!result.title.isNullOrBlank() && !result.title.equals(result.businessName)) {
+                                Text(
+                                    text = result.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Gray
+                                )
+                            }
                         }
                     }
                     
@@ -115,27 +118,67 @@ fun MarketResultView(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                val isFullAddressShown = result.recordType in listOf(
+                    SearchRecordType.GREEN_PRO,
+                    SearchRecordType.GREEN_PRO_SERVICE,
+                    SearchRecordType.GREEN_PRO_PRODUCT
+                )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top // Align to top so icon/website stay with first line
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.Top // Align icon with top line of text
+                    ) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
                             tint = DarkGreen,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier
+                                .size(16.dp)
+                                .padding(top = 2.dp) // Slight offset to center with first line of text
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${result.city}, ${result.state}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.DarkGray
-                        )
+                        
+                        Column {
+                            Text(
+                                text = if (isFullAddressShown) {
+                                    listOfNotNull(
+                                        result.addressLine1,
+                                        result.addressLine2.takeIf { !it.isNullOrBlank() },
+                                        "${result.city}, ${result.state} ${result.postalCode}"
+                                    ).joinToString("\n")
+                                } else {
+                                    "${result.city}, ${result.state}"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.DarkGray
+                            )
+
+                            if (isFullAddressShown && !result.phoneNumber.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Phone,
+                                        contentDescription = null,
+                                        tint = DarkGreen,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = result.phoneNumber,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.DarkGray
+                                    )
+                                }
+                            }
+                        }
                     }
 
-                    // Website Link
+                    // Website Link - Now stays at the top level
                     if (!result.businessUrl.isNullOrBlank()) {
                         TextButton(
                             onClick = { 
@@ -146,7 +189,9 @@ fun MarketResultView(
                                 }
                             },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-                            modifier = Modifier.height(32.dp)
+                            modifier = Modifier
+                                .height(32.dp)
+                                .offset(y = (-6).dp) // Nudge up to better align with first line of text
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Language,
@@ -242,7 +287,9 @@ fun MarketResultViewPreview() {
         state = "OR",
         postalCode = "97201",
         addressLine1 = "123 Eco Way",
+        addressLine2 = "Suite 400",
         distance = 2.5,
+        phoneNumber = "(503) 555-0123",
         description = "We provide eco-friendly landscaping and garden design services focused on native plants and water conservation.",
         longitude = 0.0,
         latitude = 0.0
