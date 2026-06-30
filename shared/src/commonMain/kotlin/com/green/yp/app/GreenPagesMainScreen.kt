@@ -44,8 +44,10 @@ fun GreenPagesMainScreen(
     }
 
     val searchResults by searchViewModel.searchResults.collectAsState()
-    val hasSearched by searchViewModel.hasSearched.collectAsState()
-    val showNoResults = hasSearched && searchResults.isEmpty()
+    val isRefreshing by searchViewModel.isRefreshing.collectAsState()
+
+    var pendingSearch by remember { mutableStateOf<SearchRequestParams?>(null) }
+    var showNoResults by remember { mutableStateOf(false) }
 
     MaterialTheme {
         Scaffold(
@@ -84,8 +86,19 @@ fun GreenPagesMainScreen(
                     initialParams = searchParams,
                     initialShowNoResults = showNoResults,
                     onSearch = { params ->
+                        // Start the search and wait for results. If no results, return to SearchScreen and show banner.
                         searchParams = params
-                        selectedTab = 0
+                        pendingSearch = params
+                        showNoResults = false
+                        // Trigger search in ViewModel
+                        searchViewModel.search(
+                            zipCode = params.zipCode,
+                            latitude = params.latitude,
+                            longitude = params.longitude,
+                            keywords = params.keywords,
+                            categoryRefId = params.categoryRefId,
+                            distance = params.distance
+                        )
                     },
                     onAppear = {
                         locationManager.startLocationUpdates()
@@ -96,6 +109,19 @@ fun GreenPagesMainScreen(
                     Column(modifier = Modifier.padding(paddingValues)) {
                         Text("Tab $selectedTab Content")
                     }
+                }
+            }
+
+            // Watch for completion of a pending search and navigate/show banner appropriately
+            LaunchedEffect(pendingSearch, isRefreshing) {
+                if (pendingSearch != null && !isRefreshing) {
+                    if (searchResults.isEmpty()) {
+                        showNoResults = true
+                        selectedTab = 1
+                    } else {
+                        selectedTab = 0
+                    }
+                    pendingSearch = null
                 }
             }
         }

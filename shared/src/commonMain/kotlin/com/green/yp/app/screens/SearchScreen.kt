@@ -135,6 +135,11 @@ fun SearchScreenContent(
     var categoryExpanded by remember { mutableStateOf(false) }
     var showNoResults by remember { mutableStateOf(initialShowNoResults) }
 
+    // Update local banner state when parent prop changes (e.g., navigation logic triggers showNoResults)
+    LaunchedEffect(initialShowNoResults) {
+        showNoResults = initialShowNoResults
+    }
+
     LaunchedEffect(categories, initialParams) {
         if (initialParams?.categoryRefId != null) {
             selectedCategory = categories.firstOrNull { it.id.toString() == initialParams.categoryRefId }
