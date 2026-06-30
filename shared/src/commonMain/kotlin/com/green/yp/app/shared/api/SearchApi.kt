@@ -20,7 +20,7 @@ interface SearchApi {
     @GET("v2/search/nearme")
     suspend fun search(
         @Query("latitude") latitude: Double? = null,
-        @Query("latitude") longitude: Double? = null,
+        @Query("longitude") longitude: Double? = null,
         @Query("keywords") keywords: String? = null,
         @Query("categoryRefId") categoryRefId: String? = null,
         @Query("distance") distance: Int? = null,

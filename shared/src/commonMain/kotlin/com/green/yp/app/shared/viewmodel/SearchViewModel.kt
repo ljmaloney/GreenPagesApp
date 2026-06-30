@@ -45,7 +45,10 @@ class SearchViewModel(
         categoryRefId: String? = null,
         distance: Int? = null
     ) {
-        lastParams = SearchParams(zipCode, latitude, longitude, keywords, categoryRefId, distance)
+        val newParams = SearchParams(zipCode, latitude, longitude, keywords, categoryRefId, distance)
+        if (newParams == lastParams && _isRefreshing.value) return
+        
+        lastParams = newParams
         currentPage = 0
         _searchResults.value = emptyList()
         fetchPage(isInitial = true)

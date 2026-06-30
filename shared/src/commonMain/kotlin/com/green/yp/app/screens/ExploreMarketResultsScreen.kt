@@ -37,6 +37,7 @@ fun ExploreMarketResultsScreen(
     val userLocation by locationManager.locationUpdates.collectAsState()
 
     val listState = rememberLazyListState()
+    var initialSearchPerformed by remember { mutableStateOf(false) }
 
     // Trigger initial search when screen is displayed
     LaunchedEffect(params, userLocation) {
@@ -49,9 +50,10 @@ fun ExploreMarketResultsScreen(
                 categoryRefId = params.categoryRefId,
                 distance = params.distance
             )
-        } else {
-            // If params not specified, use current location
+        } else if (!initialSearchPerformed) {
+            // If params not specified, use current location for the FIRST time
             userLocation?.let { location ->
+                initialSearchPerformed = true
                 viewModel.search(
                     latitude = location.latitude,
                     longitude = location.longitude,
@@ -73,10 +75,13 @@ fun ExploreMarketResultsScreen(
         }
     }
 
-    LaunchedEffect(shouldLoadMore.value) {
-        if (shouldLoadMore.value) {
-            viewModel.loadMore()
-        }
+    LaunchedEffect(listState) {
+        snapshotFlow { shouldLoadMore.value }
+            .collect { shouldLoad ->
+                if (shouldLoad && !isRefreshing && !isLoadingMore) {
+                    viewModel.loadMore()
+                }
+            }
     }
 
     Column(
