@@ -164,6 +164,7 @@ fun SearchScreenContent(
         // No-results banner shown at top when a previous search returned no results
         if (showNoResults) {
             AlertBanner(alerts = listOf(NoSearchResultsAlert()), onDismiss = { _ -> showNoResults = false })
+            Spacer(modifier = Modifier.height(12.dp))
         }
 
         Text(
