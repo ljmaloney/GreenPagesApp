@@ -2,6 +2,7 @@ package com.green.yp.app.shared.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.green.yp.app.shared.dto.search.SearchRequestParams
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.shared.repository.SearchRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,16 +27,7 @@ class SearchViewModel(
 
     private var currentPage = 0
     private var totalPages = 0
-    private var lastParams: SearchParams? = null
-
-    private data class SearchParams(
-        val zipCode: String?,
-        val latitude: Double?,
-        val longitude: Double?,
-        val keywords: String?,
-        val categoryRefId: String?,
-        val distance: Int?
-    )
+    private var lastParams: SearchRequestParams? = null
 
     fun search(
         zipCode: String? = null,
@@ -45,10 +37,27 @@ class SearchViewModel(
         categoryRefId: String? = null,
         distance: Int? = null
     ) {
-        val newParams = SearchParams(zipCode, latitude, longitude, keywords, categoryRefId, distance)
-        if (newParams == lastParams && _isRefreshing.value) return
+        // Round lat/long to 4 decimal places to avoid infinite loops from GPS jitter (~11m accuracy)
+        val roundedLat = latitude?.let { (it * 10000).toInt() / 10000.0 }
+        val roundedLon = longitude?.let { (it * 10000).toInt() / 10000.0 }
+        
+        val newParams = SearchRequestParams(
+            zipCode = zipCode,
+            latitude = roundedLat,
+            longitude = roundedLon,
+            keywords = keywords,
+            categoryRefId = categoryRefId,
+            distance = distance ?: 25
+        )
+        if (newParams == lastParams) return
         
         lastParams = newParams
+        currentPage = 0
+        _searchResults.value = emptyList()
+        fetchPage(isInitial = true)
+    }
+
+    fun refresh() {
         currentPage = 0
         _searchResults.value = emptyList()
         fetchPage(isInitial = true)
@@ -66,7 +75,15 @@ class SearchViewModel(
         viewModelScope.launch {
             if (isInitial) _isRefreshing.value = true else _isLoadingMore.value = true
             
-            val result = if ((params.latitude != null) && (params.longitude != null)) {
+            val result = if (params.zipCode != null) {
+                repository.search(
+                    zipCode = params.zipCode,
+                    keywords = params.keywords,
+                    categoryRefId = params.categoryRefId,
+                    distance = params.distance,
+                    page = currentPage
+                )
+            } else {
                 repository.search(
                     latitude = params.latitude,
                     longitude = params.longitude,
@@ -75,16 +92,7 @@ class SearchViewModel(
                     distance = params.distance,
                     page = currentPage
                 )
-            } else {
-                repository.search(
-                    zipCode = params.zipCode,
-                    keywords = params.keywords,
-                    categoryRefId = params.categoryRefId,
-                    distance = params.distance,
-                    page = currentPage
-                )
             }
-
             result.onSuccess { response ->
                 totalPages = response.totalPages
                 _searchResults.value = if (isInitial) {

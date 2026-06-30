@@ -9,5 +9,6 @@ data class SearchRequestParams(
     val longitude: Double? = null,
     val keywords: String? = null,
     val categoryRefId: String? = null,
-    val distance: Int? = null
+    val distance: Int? = 25,
+    val currentPage: Int? = 0
 )

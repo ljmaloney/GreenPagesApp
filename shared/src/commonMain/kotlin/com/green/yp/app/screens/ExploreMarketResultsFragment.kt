@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.getLocationManager
-import com.green.yp.app.components.SearchResultView
+import com.green.yp.app.components.MarketResultView
 import com.green.yp.app.shared.dto.PageableResponse
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchRequestParams
@@ -23,10 +23,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun ExploreMarketResultsScreen(
+fun ExploreMarketResultsFragment(
     paddingValues: PaddingValues,
     params: SearchRequestParams? = null,
-    viewModel: SearchViewModel = koinViewModel()
+    viewModel: SearchViewModel = koinViewModel(),
+    onRefreshLocation: () -> Unit = {}
 ) {
     val results by viewModel.searchResults.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -39,8 +40,10 @@ fun ExploreMarketResultsScreen(
     val listState = rememberLazyListState()
     var initialSearchPerformed by remember { mutableStateOf(false) }
 
-    // Trigger initial search when screen is displayed
-    LaunchedEffect(params, userLocation) {
+    // Separate search triggers to avoid infinite loops
+    
+    // 1. Trigger search when explicit params are provided (e.g. from SearchScreen)
+    LaunchedEffect(params) {
         if (params != null) {
             viewModel.search(
                 zipCode = params.zipCode,
@@ -50,27 +53,37 @@ fun ExploreMarketResultsScreen(
                 categoryRefId = params.categoryRefId,
                 distance = params.distance
             )
-        } else if (!initialSearchPerformed) {
-            // If params not specified, use current location for the FIRST time
-            userLocation?.let { location ->
-                initialSearchPerformed = true
-                viewModel.search(
-                    latitude = location.latitude,
-                    longitude = location.longitude,
-                    keywords = null,
-                    categoryRefId = null,
-                    distance = 25
-                )
-            }
         }
     }
 
-    // Pagination logic: detect when near the end of the list
+    // 2. Trigger initial location-based search when no params are provided
+    // Use a derived state to only react when userLocation is first available
+    val firstValidLocation by remember {
+        derivedStateOf { if (!initialSearchPerformed) userLocation else null }
+    }
+
+    LaunchedEffect(firstValidLocation) {
+        val location = firstValidLocation
+        if (params == null && location != null) {
+            initialSearchPerformed = true
+            // Immediately stop updates to satisfy "retrieve once" requirement
+            locationManager.stopLocationUpdates()
+            
+            viewModel.search(
+                latitude = location.latitude,
+                longitude = location.longitude,
+                keywords = null,
+                categoryRefId = null,
+                distance = 25
+            )
+        }
+    }
+
+    // Pagination logic
     val shouldLoadMore = remember {
         derivedStateOf {
             val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
             val totalItemsCount = listState.layoutInfo.totalItemsCount
-            // Load more when user is 5 items away from the end
             lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0
         }
     }
@@ -84,49 +97,64 @@ fun ExploreMarketResultsScreen(
             }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
     ) {
-        if (errorMessage != null && results.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Optional: Add a Manual Refresh Button since Pull-To-Refresh is not available in current dependencies
+            if (params == null && results.isNotEmpty()) {
+                TextButton(
+                    onClick = { 
+                        onRefreshLocation()
+                        viewModel.refresh()
+                    },
+                    modifier = Modifier.align(Alignment.End).padding(end = 16.dp)
+                ) {
+                    Text("Refresh Location", color = DarkGreen)
+                }
             }
-        } else if (isRefreshing && results.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = DarkGreen)
-            }
-        } else {
-            if (results.isEmpty() && !isRefreshing) {
+
+            if (errorMessage != null && results.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No results found.")
+                    Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
+                }
+            } else if (isRefreshing && results.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = DarkGreen)
                 }
             } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    items(items = results) { result ->
-                        SearchResultView(
-                            result = result,
-                            onClick = { /* Handle item click */ }
-                        )
+                if (results.isEmpty() && !isRefreshing) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No results found.")
                     }
-                    
-                    if (isLoadingMore) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    color = DarkGreen
-                                )
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(items = results) { result ->
+                            MarketResultView(
+                                result = result,
+                                onClick = { /* Handle item click */ }
+                            )
+                        }
+                        
+                        if (isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        color = DarkGreen
+                                    )
+                                }
                             }
                         }
                     }
@@ -138,7 +166,7 @@ fun ExploreMarketResultsScreen(
 
 @Preview
 @Composable
-fun ExploreMarketResultsScreenPreview() {
+fun ExploreMarketResultsFragmentPreview() {
     val sampleResults = listOf(
         SearchResponseDTO(
             externId = "1", producerId = "p1", locationId = "l1", categoryRef = "cat1",
@@ -172,18 +200,18 @@ fun ExploreMarketResultsScreenPreview() {
         override suspend fun search(
             zipCode: String?, keywords: String?, categoryRefId: String?,
             distance: Int?, page: Int?, limit: Int?
-        ) = Result.success(searchResults.value)
+        ) = Result.success(searchResults.value!!)
 
         override suspend fun search(
             latitude: Double?, longitude: Double?, keywords: String?,
             categoryRefId: String?, distance: Int?, page: Int?, limit: Int?
-        ) = Result.success(searchResults.value)
+        ) = Result.success(searchResults.value!!)
     }
 
     val mockViewModel = SearchViewModel(mockRepository)
 
     MaterialTheme {
-        ExploreMarketResultsScreen(
+        ExploreMarketResultsFragment(
             paddingValues = PaddingValues(16.dp),
             viewModel = mockViewModel
         )

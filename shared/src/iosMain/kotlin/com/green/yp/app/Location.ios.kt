@@ -66,7 +66,7 @@ class IOSLocationManager : LocationManager {
         println("Initializing IOSLocationManager")
         locationManager.setDelegate(delegate)
         locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
+        // Removed startUpdatingLocation() from init to prevent continuous updates on start
     }
 
     override suspend fun getCurrentLocation(): UserLocation? {
