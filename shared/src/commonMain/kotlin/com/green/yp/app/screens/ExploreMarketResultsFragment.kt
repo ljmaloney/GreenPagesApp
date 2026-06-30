@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 import com.green.yp.app.getLocationManager
 import com.green.yp.app.components.MarketResultView
 import com.green.yp.app.shared.dto.PageableResponse
@@ -100,6 +102,7 @@ fun ExploreMarketResultsFragment(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.White)
             .padding(paddingValues)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {

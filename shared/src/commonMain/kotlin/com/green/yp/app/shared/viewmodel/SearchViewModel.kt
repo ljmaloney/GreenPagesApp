@@ -14,6 +14,9 @@ class SearchViewModel(
     private val repository: SearchRepository
 ) : ViewModel() {
 
+    private val _hasSearched = MutableStateFlow(false)
+    val hasSearched: StateFlow<Boolean> = _hasSearched.asStateFlow()
+
     private val _searchResults = MutableStateFlow<List<SearchResponseDTO>>(emptyList())
     val searchResults: StateFlow<List<SearchResponseDTO>> = _searchResults.asStateFlow()
 
@@ -52,6 +55,7 @@ class SearchViewModel(
         if (newParams == lastParams) return
         
         lastParams = newParams
+        _hasSearched.value = true
         currentPage = 0
         _searchResults.value = emptyList()
         fetchPage(isInitial = true)

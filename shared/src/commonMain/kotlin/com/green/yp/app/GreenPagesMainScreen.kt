@@ -8,6 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,10 @@ fun GreenPagesMainScreen(
             selectedTab = 1
         }
     }
+
+    val searchResults by searchViewModel.searchResults.collectAsState()
+    val hasSearched by searchViewModel.hasSearched.collectAsState()
+    val showNoResults = hasSearched && searchResults.isEmpty()
 
     MaterialTheme {
         Scaffold(
@@ -76,6 +81,8 @@ fun GreenPagesMainScreen(
                     classifiedView = classifiedViewModel,
                     referenceViewModel = referenceViewModel,
                     paddingValues = paddingValues,
+                    initialParams = searchParams,
+                    initialShowNoResults = showNoResults,
                     onSearch = { params ->
                         searchParams = params
                         selectedTab = 0
