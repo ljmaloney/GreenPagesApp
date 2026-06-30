@@ -16,4 +16,14 @@ interface SearchRepository {
         page: Int? = 0,
         limit: Int? = 15
     ): Result<PageableResponse<SearchResponseDTO>>
+
+    suspend fun search(
+        latitude: Double? = null,
+        longitude: Double? = null,
+        keywords: String? = null,
+        categoryRefId: String? = null,
+        distance: Int? = null,
+        page: Int? = 0,
+        limit: Int? = 15
+    ): Result<PageableResponse<SearchResponseDTO>>
 }

@@ -100,6 +100,7 @@ fun LoadingScreen(
         val shuffled = businesses.shuffled()
         var index = 0
 
+        // Attempt to acquire location once at start
         if (locationManager.isLocationAvailable()) {
             println("DEBUG: LoadingScreen: Starting location updates")
             locationManager.startLocationUpdates()
@@ -131,8 +132,9 @@ fun LoadingScreen(
         }
 
         delay(1500)
-        // statusLocation is now handled by the observer LaunchedEffect above
-        delay(1500)
+        // Ensure we stop continuous updates after acquiring or failing
+        locationManager.stopLocationUpdates()
+
         statusApi = "🌱 Listings loaded"
 
         job.cancel()

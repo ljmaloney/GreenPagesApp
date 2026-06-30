@@ -2,36 +2,107 @@ package com.green.yp.app.shared.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.green.yp.app.shared.dto.PageableResponse
+import com.green.yp.app.shared.dto.search.SearchRequestParams
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.shared.repository.SearchRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class SearchViewModel(
     private val repository: SearchRepository
 ) : ViewModel() {
 
-    val searchResults: StateFlow<PageableResponse<SearchResponseDTO>?> = repository.searchResults
+    private val _searchResults = MutableStateFlow<List<SearchResponseDTO>>(emptyList())
+    val searchResults: StateFlow<List<SearchResponseDTO>> = _searchResults.asStateFlow()
+
+    private val _isRefreshing = MutableStateFlow(value = false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _isLoadingMore = MutableStateFlow(value = false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
+
     val errorMessage: StateFlow<String?> = repository.errorMessage
+
+    private var currentPage = 0
+    private var totalPages = 0
+    private var lastParams: SearchRequestParams? = null
 
     fun search(
         zipCode: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null,
         keywords: String? = null,
         categoryRefId: String? = null,
-        distance: Int? = null,
-        page: Int? = 0,
-        limit: Int? = 15
+        distance: Int? = null
     ) {
+        // Round lat/long to 4 decimal places to avoid infinite loops from GPS jitter (~11m accuracy)
+        val roundedLat = latitude?.let { (it * 10000).toInt() / 10000.0 }
+        val roundedLon = longitude?.let { (it * 10000).toInt() / 10000.0 }
+        
+        val newParams = SearchRequestParams(
+            zipCode = zipCode,
+            latitude = roundedLat,
+            longitude = roundedLon,
+            keywords = keywords,
+            categoryRefId = categoryRefId,
+            distance = distance ?: 25
+        )
+        if (newParams == lastParams) return
+        
+        lastParams = newParams
+        currentPage = 0
+        _searchResults.value = emptyList()
+        fetchPage(isInitial = true)
+    }
+
+    fun refresh() {
+        currentPage = 0
+        _searchResults.value = emptyList()
+        fetchPage(isInitial = true)
+    }
+
+    fun loadMore() {
+        if (_isLoadingMore.value || (currentPage >= totalPages - 1)) return
+        currentPage++
+        fetchPage(isInitial = false)
+    }
+
+    private fun fetchPage(isInitial: Boolean) {
+        val params = lastParams ?: return
+        
         viewModelScope.launch {
-            repository.search(
-                zipCode = zipCode,
-                keywords = keywords,
-                categoryRefId = categoryRefId,
-                distance = distance,
-                page = page,
-                limit = limit
-            )
+            if (isInitial) _isRefreshing.value = true else _isLoadingMore.value = true
+            
+            val result = if (params.zipCode != null) {
+                repository.search(
+                    zipCode = params.zipCode,
+                    keywords = params.keywords,
+                    categoryRefId = params.categoryRefId,
+                    distance = params.distance,
+                    page = currentPage
+                )
+            } else {
+                repository.search(
+                    latitude = params.latitude,
+                    longitude = params.longitude,
+                    keywords = params.keywords,
+                    categoryRefId = params.categoryRefId,
+                    distance = params.distance,
+                    page = currentPage
+                )
+            }
+            result.onSuccess { response ->
+                totalPages = response.totalPages
+                _searchResults.value = if (isInitial) {
+                    response.pageableResults
+                } else {
+                    _searchResults.value + response.pageableResults
+                }
+            }
+            
+            if (isInitial) _isRefreshing.value = false else _isLoadingMore.value = false
         }
     }
 }

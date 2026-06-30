@@ -16,4 +16,15 @@ interface SearchApi {
         @Query("page") page: Int? = 0,
         @Query("limit") limit: Int? = 15
     ): PageableResponse<SearchResponseDTO>
+
+    @GET("v2/search/nearme")
+    suspend fun search(
+        @Query("latitude") latitude: Double? = null,
+        @Query("longitude") longitude: Double? = null,
+        @Query("keywords") keywords: String? = null,
+        @Query("categoryRefId") categoryRefId: String? = null,
+        @Query("distance") distance: Int? = null,
+        @Query("page") page: Int? = 0,
+        @Query("limit") limit: Int? = 15
+    ): PageableResponse<SearchResponseDTO>
 }

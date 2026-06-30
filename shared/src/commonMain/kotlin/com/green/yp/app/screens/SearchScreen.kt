@@ -42,6 +42,7 @@ import com.green.yp.app.UserLocation
 import com.green.yp.app.getLocationManager
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.dto.reference.LineOfBusiness
+import com.green.yp.app.shared.dto.search.SearchRequestParams
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGold
@@ -54,9 +55,12 @@ import kotlin.uuid.Uuid
 data class SearchCategory(val id: Uuid, val name: String?)
 
 @Composable
-fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
-                 referenceViewModel: ReferenceViewModel = koinViewModel(),
-                 paddingValues: PaddingValues = PaddingValues(16.dp)
+fun SearchScreen(
+    classifiedView: ClassifiedViewModel = koinViewModel(),
+    referenceViewModel: ReferenceViewModel = koinViewModel(),
+    paddingValues: PaddingValues = PaddingValues(16.dp),
+    onSearch: (SearchRequestParams) -> Unit = {},
+    onAppear: () -> Unit = {}
 ) {
     val locationManager = remember { getLocationManager() }
     val userLocation by locationManager.locationUpdates.collectAsState()
@@ -66,6 +70,7 @@ fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
     var stableLocation by remember { mutableStateOf<UserLocation?>(null) }
 
     LaunchedEffect(Unit) {
+        onAppear()
         launch { classifiedView.fetchCategories() }
         launch { referenceViewModel.fetchLinesOfBusiness() }
     }
@@ -93,7 +98,18 @@ fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
     SearchScreenContent(
         paddingValues = paddingValues,
         userLocation = stableLocation,
-        categories = combinedCategories
+        categories = combinedCategories,
+        onSearchClick = { keywords, zip, distance, category ->
+            val params = SearchRequestParams(
+                keywords = keywords.takeIf { it.isNotBlank() },
+                zipCode = zip.takeIf { it.isNotBlank() },
+                distance = distance.toInt(),
+                categoryRefId = category?.id?.toString(),
+                latitude = stableLocation?.latitude,
+                longitude = stableLocation?.longitude
+            )
+            onSearch(params)
+        }
     )
 }
 
@@ -101,7 +117,8 @@ fun SearchScreen(classifiedView: ClassifiedViewModel = koinViewModel(),
 fun SearchScreenContent(
     paddingValues: PaddingValues,
     userLocation: UserLocation?,
-    categories: List<SearchCategory> = emptyList()
+    categories: List<SearchCategory> = emptyList(),
+    onSearchClick: (String, String, Float, SearchCategory?) -> Unit = { _, _, _, _ -> }
 ) {
     var keywords by remember { mutableStateOf("") }
     var zipCode by remember { mutableStateOf("") }
@@ -220,7 +237,7 @@ fun SearchScreenContent(
 
         // Search Button
         Button(
-            onClick = { /* Handle search */ },
+            onClick = { onSearchClick(keywords, zipCode, selectedDistance, selectedCategory) },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .fillMaxWidth(),
