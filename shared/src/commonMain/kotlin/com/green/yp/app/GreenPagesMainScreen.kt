@@ -142,8 +142,10 @@ fun GreenPagesMainScreenPreview() {
 
     val mockClassifiedRepo = object : com.green.yp.app.shared.repository.ClassifiedRepository {
         override val categories = kotlinx.coroutines.flow.MutableStateFlow(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedCategory>())
+        override val adTypes = kotlinx.coroutines.flow.MutableStateFlow(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedAdType>())
         override val errorMessage = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
         override suspend fun getCategories() = Result.success(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedCategory>())
+        override suspend fun getClassifiedAdTypes() = Result.success(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedAdType>())
     }
 
     val mockReferenceRepo = object : com.green.yp.app.shared.repository.ReferenceRepository {

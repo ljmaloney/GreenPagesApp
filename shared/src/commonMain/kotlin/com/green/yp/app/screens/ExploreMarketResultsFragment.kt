@@ -76,7 +76,7 @@ fun ExploreMarketResultsFragment(
                 longitude = location.longitude,
                 keywords = null,
                 categoryRefId = null,
-                distance = 25
+                distance = 15
             )
         }
     }
