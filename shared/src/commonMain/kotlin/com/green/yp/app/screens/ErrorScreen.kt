@@ -1,7 +1,8 @@
-package com.green.yp.app
+package com.green.yp.app.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,7 +34,7 @@ fun ErrorScreen(
             fontSize = 18.sp,
             modifier = Modifier.fillMaxWidth()
         )
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(8.dp))
+        Spacer(modifier = Modifier.padding(8.dp))
         Button(onClick = onRetry) {
             Text("Retry")
         }
