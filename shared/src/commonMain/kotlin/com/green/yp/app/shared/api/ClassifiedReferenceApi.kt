@@ -5,7 +5,7 @@ import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import de.jensklingenberg.ktorfit.http.GET
 
-interface ClassifiedApi {
+interface ClassifiedReferenceApi {
 
     @GET("reference/classified/categories")
     suspend fun getCategories(): ResponseWrapper<List<ClassifiedCategory>>

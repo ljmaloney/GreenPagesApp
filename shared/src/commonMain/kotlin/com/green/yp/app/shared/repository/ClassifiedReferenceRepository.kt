@@ -4,7 +4,7 @@ import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import kotlinx.coroutines.flow.StateFlow
 
-interface ClassifiedRepository {
+interface ClassifiedReferenceRepository {
     val categories: StateFlow<List<ClassifiedCategory>>
     val adTypes: StateFlow<List<ClassifiedAdType>>
     // Expose an error message to be observed by the UI. Null when no error.

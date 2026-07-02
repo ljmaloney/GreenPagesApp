@@ -43,7 +43,7 @@ import com.green.yp.app.getLocationManager
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.dto.reference.LineOfBusiness
 import com.green.yp.app.shared.dto.search.SearchRequestParams
-import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
@@ -58,7 +58,7 @@ data class SearchCategory(val id: Uuid, val name: String?)
 
 @Composable
 fun SearchScreen(
-    classifiedView: ClassifiedViewModel = koinViewModel(),
+    classifiedView: ClassifiedReferenceViewModel = koinViewModel(),
     referenceViewModel: ReferenceViewModel = koinViewModel(),
     paddingValues: PaddingValues = PaddingValues(16.dp),
     initialParams: SearchRequestParams? = null,

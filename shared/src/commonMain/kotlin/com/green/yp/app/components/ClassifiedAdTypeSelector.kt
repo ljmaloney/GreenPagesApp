@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.shared.dto.classified.ClassifiedAdFeatures
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
-import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGreen
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -29,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ClassifiedAdTypeSelector(
-    viewModel: ClassifiedViewModel,
+    viewModel: ClassifiedReferenceViewModel,
     modifier: Modifier = Modifier,
     onAdTypeSelected: (ClassifiedAdType) -> Unit = {}
 ) {

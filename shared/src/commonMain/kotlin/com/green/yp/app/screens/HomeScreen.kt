@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.green.yp.app.Greeting
 import com.green.yp.app.UserLocation
 import com.green.yp.app.getLocationManager
-import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.compose_multiplatform
@@ -36,7 +36,7 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun HomeScreen(
     paddingValues: PaddingValues,
-    viewModel: ClassifiedViewModel
+    viewModel: ClassifiedReferenceViewModel
 ) {
     val locationManager = remember { getLocationManager() }
     val userLocation by locationManager.locationUpdates.collectAsState()

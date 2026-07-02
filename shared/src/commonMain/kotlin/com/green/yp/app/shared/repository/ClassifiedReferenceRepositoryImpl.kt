@@ -1,6 +1,6 @@
 package com.green.yp.app.shared.repository
 
-import com.green.yp.app.shared.api.ClassifiedApi
+import com.green.yp.app.shared.api.ClassifiedReferenceApi
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import io.ktor.client.plugins.*
 
-class ClassifiedRepositoryImpl(
-    private val classifiedApi: ClassifiedApi) : ClassifiedRepository {
+class ClassifiedReferenceRepositoryImpl(
+    private val classifiedApi: ClassifiedReferenceApi) : ClassifiedReferenceRepository {
 
     private val _categories = MutableStateFlow<List<ClassifiedCategory>>(emptyList())
     override val categories: StateFlow<List<ClassifiedCategory>> = _categories.asStateFlow()

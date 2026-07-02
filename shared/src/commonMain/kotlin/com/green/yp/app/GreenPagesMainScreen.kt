@@ -20,7 +20,7 @@ import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.screens.ExploreMarketResultsFragment
 import com.green.yp.app.screens.SearchScreen
 import com.green.yp.app.shared.dto.search.SearchRequestParams
-import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -28,7 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun GreenPagesMainScreen(
     searchViewModel: SearchViewModel = koinViewModel(),
-    classifiedViewModel: ClassifiedViewModel = koinViewModel(),
+    classifiedReferenceViewModel: ClassifiedReferenceViewModel = koinViewModel(),
     referenceViewModel: ReferenceViewModel = koinViewModel()
 ) {
     val locationManager = remember { getLocationManager() }
@@ -80,7 +80,7 @@ fun GreenPagesMainScreen(
                     }
                 )
                 1 -> SearchScreen(
-                    classifiedView = classifiedViewModel,
+                    classifiedView = classifiedReferenceViewModel,
                     referenceViewModel = referenceViewModel,
                     paddingValues = paddingValues,
                     initialParams = searchParams,
@@ -140,7 +140,7 @@ fun GreenPagesMainScreenPreview() {
         override suspend fun search(latitude: Double?, longitude: Double?, keywords: String?, categoryRefId: String?, distance: Int?, page: Int?, limit: Int?) = Result.success(searchResults.value!!)
     }
 
-    val mockClassifiedRepo = object : com.green.yp.app.shared.repository.ClassifiedRepository {
+    val mockClassifiedRepo = object : com.green.yp.app.shared.repository.ClassifiedReferenceRepository {
         override val categories = kotlinx.coroutines.flow.MutableStateFlow(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedCategory>())
         override val adTypes = kotlinx.coroutines.flow.MutableStateFlow(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedAdType>())
         override val errorMessage = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
@@ -155,12 +155,12 @@ fun GreenPagesMainScreenPreview() {
     }
 
     val searchVM = SearchViewModel(mockSearchRepo)
-    val classifiedVM = ClassifiedViewModel(mockClassifiedRepo)
+    val classifiedVM = ClassifiedReferenceViewModel(mockClassifiedRepo)
     val referenceVM = ReferenceViewModel(mockReferenceRepo)
 
     GreenPagesMainScreen(
         searchViewModel = searchVM,
-        classifiedViewModel = classifiedVM,
+        classifiedReferenceViewModel = classifiedVM,
         referenceViewModel = referenceVM
     )
 }

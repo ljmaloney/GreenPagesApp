@@ -1,7 +1,7 @@
 package com.green.yp.app.shared.repository
 
 import com.green.yp.app.config.PlatformConfig
-import com.green.yp.app.shared.api.ClassifiedApi
+import com.green.yp.app.shared.api.ClassifiedReferenceApi
 import com.green.yp.app.shared.network.HttpClientFactory
 import de.jensklingenberg.ktorfit.Ktorfit
 
@@ -16,10 +16,10 @@ object RepositoryFactory {
             .httpClient(httpClient)
             .build()
 
-    fun createClassifiedRepository(): ClassifiedRepository {
+    fun createClassifiedRepository(): ClassifiedReferenceRepository {
 
-        return ClassifiedRepositoryImpl(
-            ktorfit.create<ClassifiedApi>()
+        return ClassifiedReferenceRepositoryImpl(
+            ktorfit.create<ClassifiedReferenceApi>()
         )
     }
 }

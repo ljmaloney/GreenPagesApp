@@ -2,11 +2,11 @@ package com.green.yp.app.shared.di
 
 import com.green.yp.app.config.PlatformConfig
 import com.green.yp.app.shared.network.HttpClientFactory
-import com.green.yp.app.shared.api.ClassifiedApi
+import com.green.yp.app.shared.api.ClassifiedReferenceApi
 import com.green.yp.app.shared.api.ReferenceApi
 import com.green.yp.app.shared.api.SearchApi
 import com.green.yp.app.shared.repository.*
-import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
 import de.jensklingenberg.ktorfit.Ktorfit
@@ -26,7 +26,7 @@ val appModule = module {
             .build()
     }
 
-    single<ClassifiedApi> {
+    single<ClassifiedReferenceApi> {
         get<Ktorfit>().create()
     }
 
@@ -38,8 +38,8 @@ val appModule = module {
         get<Ktorfit>().create()
     }
 
-    single<ClassifiedRepository> {
-        ClassifiedRepositoryImpl(get<ClassifiedApi>())
+    single<ClassifiedReferenceRepository> {
+        ClassifiedReferenceRepositoryImpl(get<ClassifiedReferenceApi>())
     }
 
     single<SearchRepository> {
@@ -51,7 +51,7 @@ val appModule = module {
     }
 
     factory {
-        ClassifiedViewModel(get<ClassifiedRepository>())
+        ClassifiedReferenceViewModel(get<ClassifiedReferenceRepository>())
     }
 
     factory {

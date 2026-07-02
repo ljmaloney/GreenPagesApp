@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
-import com.green.yp.app.shared.repository.ClassifiedRepository
+import com.green.yp.app.shared.repository.ClassifiedReferenceRepository
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ClassifiedViewModel(
-    private val repository: ClassifiedRepository
+class ClassifiedReferenceViewModel(
+    private val repository: ClassifiedReferenceRepository
 ) : ViewModel() {
 
     val categories: StateFlow<List<ClassifiedCategory>> = repository.categories

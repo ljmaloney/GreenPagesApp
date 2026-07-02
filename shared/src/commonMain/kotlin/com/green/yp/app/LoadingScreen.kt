@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.green.yp.app.screens.ErrorScreen
-import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.greenyp_splash_screen
@@ -59,7 +59,7 @@ val defaultBusinesses: List<String> = listOf(
 @Composable
 fun LoadingScreen(
     businesses: List<String> = defaultBusinesses,
-    viewModel: ClassifiedViewModel = koinViewModel(),
+    viewModel: ClassifiedReferenceViewModel = koinViewModel(),
     referenceViewModel: ReferenceViewModel = koinViewModel(),
     onLoadingComplete: () -> Unit
 ) {
