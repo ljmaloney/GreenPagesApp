@@ -1,4 +1,4 @@
-package com.green.yp.app.components
+package com.green.yp.app.components.classified
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,7 +18,6 @@ import com.green.yp.app.shared.dto.classified.ClassifiedAdFeatures
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGreen
-import com.green.yp.app.ui.theme.DarkGold
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -77,9 +76,9 @@ fun ClassifiedAdTypeSelectorContent(
             ClassifiedAdTypeCard(
                 adType = adType,
                 isSelected = adType.adTypeId == selectedId,
-                onClick = { 
+                onClick = {
                     selectedId = adType.adTypeId
-                    onAdTypeSelected(adType) 
+                    onAdTypeSelected(adType)
                 }
             )
         }

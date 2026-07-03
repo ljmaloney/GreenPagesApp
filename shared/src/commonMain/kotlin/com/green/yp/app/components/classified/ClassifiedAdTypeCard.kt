@@ -1,4 +1,4 @@
-package com.green.yp.app.components
+package com.green.yp.app.components.classified
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*

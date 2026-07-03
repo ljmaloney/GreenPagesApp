@@ -1,0 +1,150 @@
+package com.green.yp.app.components.classified
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.green.yp.app.components.ChipItem
+import com.green.yp.app.components.ChipSelector
+import com.green.yp.app.components.ThreeItemSpinner
+import com.green.yp.app.enum.PricePerEnum
+import com.green.yp.app.shared.dto.classified.ClassifiedAdType
+import com.green.yp.app.shared.dto.classified.ClassifiedCategory
+import com.green.yp.app.shared.repository.ClassifiedReferenceRepository
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
+import com.green.yp.app.ui.theme.DarkGreen
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
+@OptIn(ExperimentalUuidApi::class)
+@Composable
+fun AdDetails(
+    viewModel: ClassifiedReferenceViewModel,
+    modifier: Modifier = Modifier
+) {
+    val categories by viewModel.categories.collectAsState()
+    
+    var selectedCategoryId by remember { mutableStateOf<Uuid?>(null) }
+    var price by remember { mutableStateOf("") }
+    var selectedPricePerIndex by remember { mutableStateOf(0) }
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+
+    val chipItems = remember(categories) {
+        categories.map { ChipItem(it.categoryId, it.name) }
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "2. Enter Your Ad Details",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = DarkGreen,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        ChipSelector(
+            title = "Category*",
+            items = chipItems,
+            selectedId = selectedCategoryId,
+            onItemSelected = { selectedCategoryId = it.id },
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        OutlinedTextField(
+            value = price,
+            onValueChange = { input ->
+                // Allow only numbers and a single decimal point with up to 2 decimal places
+                if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
+                    price = input
+                }
+            },
+            label = { Text("Price (USD)*") },
+            placeholder = { Text("0.00") },
+            prefix = { Text("$") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            singleLine = true
+        )
+
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Price Per (Optional)",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                ThreeItemSpinner(
+                    items = PricePerEnum.entries,
+                    selectedIndex = selectedPricePerIndex,
+                    itemLabel = { it.displayName },
+                    onSelected = { selectedPricePerIndex = it }
+                )
+            }
+        }
+
+        OutlinedTextField(
+            value = title,
+            onValueChange = { input ->
+                // Allow only alphabetical and numerical characters
+                if (input.all { it.isLetterOrDigit() || it.isWhitespace() }) {
+                    title = input
+                }
+            },
+            label = { Text("Title") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            singleLine = true
+        )
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description") },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
+            minLines = 3
+        )
+    }
+}
+
+@OptIn(ExperimentalUuidApi::class)
+@Preview
+@Composable
+fun AdDetailsPreview() {
+    val mockRepo = object : ClassifiedReferenceRepository {
+        override val categories = MutableStateFlow(
+            listOf(
+                ClassifiedCategory(Uuid.random(), true, "Hay", "hay"),
+                ClassifiedCategory(Uuid.random(), true, "Livestock", "livestock"),
+                ClassifiedCategory(Uuid.random(), true, "Equipment", "equipment"),
+                ClassifiedCategory(Uuid.random(), true, "Seeds", "seeds")
+            )
+        )
+        override val adTypes = MutableStateFlow(emptyList<ClassifiedAdType>())
+        override val errorMessage = MutableStateFlow<String?>(null)
+        override suspend fun getCategories() = Result.success(categories.value)
+        override suspend fun getClassifiedAdTypes() = Result.success(emptyList<ClassifiedAdType>())
+    }
+    
+    val viewModel = ClassifiedReferenceViewModel(mockRepo)
+    
+    MaterialTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            AdDetails(viewModel = viewModel)
+        }
+    }
+}
