@@ -54,4 +54,11 @@ class ClassifiedViewModel(private val repository: ClassifiedRepository) : ViewMo
             repository.uploadImage(request)
         }
     }
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun getClassified(classifiedId: Uuid) {
+        viewModelScope.launch {
+            repository.getClassified(classifiedId)
+        }
+    }
 }

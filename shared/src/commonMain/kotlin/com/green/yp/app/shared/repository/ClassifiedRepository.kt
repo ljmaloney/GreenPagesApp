@@ -22,4 +22,5 @@ interface ClassifiedRepository {
     suspend fun processClassifiedPayment(payment: ClassifiedPayment): Result<ClassifiedPaymentResponse>
     suspend fun uploadImage(request: ClassifiedImageUpload): Result<Unit>
     suspend fun getClassifiedImageGallery(classifiedId: Uuid): Result<List<ImageGallery>>
+    suspend fun getClassified(classifiedId: Uuid): Result<ClassifiedResponse>
 }

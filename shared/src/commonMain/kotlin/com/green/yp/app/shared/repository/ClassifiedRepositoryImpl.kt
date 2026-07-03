@@ -208,4 +208,33 @@ class ClassifiedRepositoryImpl(private val classifiedApi: ClassifiedApi) : Class
             _isLoading.value = false
         }
     }
+
+    override suspend fun getClassified(classifiedId: Uuid): Result<ClassifiedResponse> {
+        _isLoading.value = true
+        _errorMessage.value = null
+
+        return runCatching {
+            val result = classifiedApi.getClassified(classifiedId)
+
+            result.errorMessageApi?.let { error ->
+                _errorMessage.value = error.displayMessage
+                throw IllegalStateException(error.displayMessage)
+            }
+
+            val response = result.response
+            _createdAd.value = response
+            _errorMessage.value = null
+            response
+        }.onFailure { throwable ->
+            val message = when (throwable) {
+                is ClientRequestException -> "Client error: ${throwable.response.status.value}"
+                is ServerResponseException -> "Server error: ${throwable.response.status.value}"
+                is ResponseException -> "Network error: ${throwable.response.status.value}"
+                else -> throwable.message ?: "Unknown error"
+            }
+            _errorMessage.value = message
+        }.also {
+            _isLoading.value = false
+        }
+    }
 }

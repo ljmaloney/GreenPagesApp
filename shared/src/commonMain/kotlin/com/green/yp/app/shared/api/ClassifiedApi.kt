@@ -32,6 +32,9 @@ interface ClassifiedApi {
     @POST("classified/payment")
     suspend fun processClassifiedPayment(@Body request: ClassifiedPayment): ResponseWrapper<ClassifiedPaymentResponse>
 
+    @GET("classified/{classifiedId}")
+    suspend fun getClassified(@Path(value="classifiedId") classifiedId: Uuid): ResponseWrapper<ClassifiedResponse>
+
     @GET("classified/{classifiedId}/image/gallery")
     suspend fun getClassifiedImageGallery(@Path("classifiedId") classifiedId: Uuid): ResponseWrapper<List<ImageGallery>>
 
