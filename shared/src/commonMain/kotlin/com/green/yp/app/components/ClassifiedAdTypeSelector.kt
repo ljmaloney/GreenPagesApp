@@ -18,6 +18,10 @@ import com.green.yp.app.shared.dto.classified.ClassifiedAdFeatures
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.ui.theme.DarkGold
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,6 +59,9 @@ fun ClassifiedAdTypeSelectorContent(
     onAdTypeSelected: (ClassifiedAdType) -> Unit = {}
 ) {
     val pagerState = rememberPagerState(pageCount = { adTypes.size })
+    var selectedId by remember { 
+        mutableStateOf(adTypes.find { it.defaultPackage }?.adTypeId ?: adTypes.firstOrNull()?.adTypeId) 
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -66,9 +73,14 @@ fun ClassifiedAdTypeSelectorContent(
             contentPadding = PaddingValues(horizontal = 0.dp),
             pageSpacing = 0.dp
         ) { page ->
+            val adType = adTypes[page]
             ClassifiedAdTypeCard(
-                adType = adTypes[page],
-                onClick = { onAdTypeSelected(adTypes[page]) }
+                adType = adType,
+                isSelected = adType.adTypeId == selectedId,
+                onClick = { 
+                    selectedId = adType.adTypeId
+                    onAdTypeSelected(adType) 
+                }
             )
         }
 

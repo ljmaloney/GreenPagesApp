@@ -1,5 +1,6 @@
 package com.green.yp.app.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -9,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +19,8 @@ import com.green.yp.app.shared.dto.classified.ClassifiedAdFeatures
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.ui.theme.DarkGreen
 import com.green.yp.app.ui.theme.DarkGold
+import com.green.yp.app.ui.theme.LightLightGold
+import com.green.yp.app.ui.theme.LightLightGreen
 
 /**
  * A card component displaying details for a [ClassifiedAdType].
@@ -29,6 +31,7 @@ import com.green.yp.app.ui.theme.DarkGold
 fun ClassifiedAdTypeCard(
     adType: ClassifiedAdType,
     modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     Box(
@@ -40,10 +43,11 @@ fun ClassifiedAdTypeCard(
             onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.outlinedCardColors(
-                containerColor = Color.White,
+                containerColor = if (isSelected) LightLightGold else LightLightGreen,
             ),
-            border = CardDefaults.outlinedCardBorder(enabled = true).copy(
-                brush = SolidColor(if (adType.defaultPackage) DarkGold else DarkGreen)
+            border = BorderStroke(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) DarkGold else DarkGreen
             )
         ) {
             Column(
