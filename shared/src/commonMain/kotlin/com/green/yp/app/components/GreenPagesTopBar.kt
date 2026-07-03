@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +32,8 @@ import greenpagesapp.shared.generated.resources.green_pages_app_banner
 @Preview
 @Composable
 fun GreenPagesTopBar(
-    onSearchClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {},
+    onLogoClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -47,7 +51,13 @@ fun GreenPagesTopBar(
             Image(
                 painter = painterResource(Res.drawable.green_pages_app_banner),
                 contentDescription = "Green Pages Banner",
-                modifier = Modifier.height(40.dp),
+                modifier = Modifier
+                    .height(40.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onLogoClick
+                    ),
                 contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.weight(1f))

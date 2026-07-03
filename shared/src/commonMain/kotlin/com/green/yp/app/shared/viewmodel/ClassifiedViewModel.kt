@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.green.yp.app.shared.dto.classified.ClassifiedRequest
 import com.green.yp.app.shared.dto.classified.ClassifiedResponse
+import com.green.yp.app.shared.dto.classified.ImageGallery
 import com.green.yp.app.shared.dto.classified.ClassifiedPayment
 import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
+import com.green.yp.app.shared.dto.classified.ClassifiedImageUpload
 import com.green.yp.app.shared.repository.ClassifiedRepository
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -19,6 +21,7 @@ class ClassifiedViewModel(private val repository: ClassifiedRepository) : ViewMo
     val errorMessage: StateFlow<String?> = repository.errorMessage
     val isLoading: StateFlow<Boolean> = repository.isLoading
     val isValidated: StateFlow<Boolean> = repository.isValidated
+    val imageGallery: StateFlow<List<ImageGallery>> = repository.imageGallery
 
     fun createClassifiedAd(request: ClassifiedRequest) {
         viewModelScope.launch {
@@ -27,15 +30,28 @@ class ClassifiedViewModel(private val repository: ClassifiedRepository) : ViewMo
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    fun validateClassifiedEmail(classifiedId: String, emailAddress: String, token: String) {
+    fun validateClassifiedEmail(classifiedId: Uuid, emailAddress: String, token: String) {
         viewModelScope.launch {
-            repository.validateClassifiedEmail(Uuid.parse(classifiedId), emailAddress, token)
+            repository.validateClassifiedEmail(classifiedId, emailAddress, token)
         }
     }
 
     fun processClassifiedPayment(payment: ClassifiedPayment) {
         viewModelScope.launch {
             repository.processClassifiedPayment(payment)
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun getClassifiedImageGallery(classifiedId: Uuid) {
+        viewModelScope.launch {
+            repository.getClassifiedImageGallery(classifiedId)
+        }
+    }
+
+    fun uploadImage(request: ClassifiedImageUpload) {
+        viewModelScope.launch {
+            repository.uploadImage(request)
         }
     }
 }

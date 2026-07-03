@@ -54,7 +54,11 @@ fun GreenPagesMainScreen(
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 GreenPagesTopBar(
-                    onSearchClick = { selectedTab = 1 }
+                    onSearchClick = { selectedTab = 1 },
+                    onLogoClick = { 
+                        selectedTab = 0 
+                        searchParams = null
+                    }
                 )
             },
             bottomBar = {
