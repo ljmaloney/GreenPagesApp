@@ -43,7 +43,7 @@ class ClassifiedViewModel(private val repository: ClassifiedRepository) : ViewMo
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    fun getClassifiedImageGallery(classifiedId: Uuid) {
+    fun getClassifiedImages(classifiedId: Uuid) {
         viewModelScope.launch {
             repository.getClassifiedImageGallery(classifiedId)
         }

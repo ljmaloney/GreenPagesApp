@@ -35,7 +35,7 @@ fun UploadImages(
 
     // Refresh gallery when component is loaded or after an upload might have happened
     LaunchedEffect(classifiedId) {
-        viewModel.getClassifiedImageGallery(classifiedId)
+        viewModel.getClassifiedImages(classifiedId)
     }
 
     UploadImagesContent(
