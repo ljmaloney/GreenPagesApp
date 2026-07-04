@@ -26,7 +26,8 @@ data class NavItem(val label: String, val icon: ImageVector)
 @Composable
 fun GreenPagesBottomBar(
     selectedTab: Int,
-    onTabSelected: (Int) -> Unit
+    onTabSelected: (Int) -> Unit,
+    onCreateClick: () -> Unit = {}
 ) {
     val navItems = listOf(
         NavItem("Home", Icons.Default.Home),
@@ -45,7 +46,13 @@ fun GreenPagesBottomBar(
             val isSelected = selectedTab == index
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { onTabSelected(index) },
+                onClick = {
+                    if (index == 2) {
+                        onCreateClick()
+                    } else {
+                        onTabSelected(index)
+                    }
+                },
                 icon = {
                     Icon(
                         imageVector = item.icon,
@@ -74,6 +81,7 @@ fun GreenPagesBottomBar(
 fun GreenPagesBottomBarPreview() {
     GreenPagesBottomBar(
         selectedTab = 0,
-        onTabSelected = {}
+        onTabSelected = {},
+        onCreateClick = {}
     )
 }

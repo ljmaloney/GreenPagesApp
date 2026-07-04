@@ -23,14 +23,14 @@ import com.green.yp.app.shared.dto.search.SearchRequestParams
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
-import com.green.yp.app.wizard.GreenPagesClassifiedWizard
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun GreenPagesMainScreen(
     searchViewModel: SearchViewModel = koinViewModel(),
     classifiedReferenceViewModel: ClassifiedReferenceViewModel = koinViewModel(),
-    referenceViewModel: ReferenceViewModel = koinViewModel()
+    referenceViewModel: ReferenceViewModel = koinViewModel(),
+    onNavigateToWizard: () -> Unit = {}
 ) {
     val locationManager = remember { getLocationManager() }
     
@@ -71,7 +71,8 @@ fun GreenPagesMainScreen(
                             // Reset search params when clicking Home to use default location search
                             searchParams = null
                         }
-                    }
+                    },
+                    onCreateClick = { onNavigateToWizard() }
                 )
             }
         ) { paddingValues ->
@@ -108,9 +109,6 @@ fun GreenPagesMainScreen(
                     onAppear = {
                         locationManager.startLocationUpdates()
                     }
-                )
-                2 -> GreenPagesClassifiedWizard(
-                    classifiedReferenceViewModel = classifiedReferenceViewModel
                 )
                 else -> {
                     // TODO: Other screens

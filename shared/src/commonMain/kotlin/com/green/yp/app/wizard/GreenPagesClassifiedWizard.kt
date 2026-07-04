@@ -35,7 +35,8 @@ fun GreenPagesClassifiedWizard(
     referenceViewModel: ReferenceViewModel = koinViewModel(),
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
-    imagePicker: ImagePicker // This should be provided by koin or composition local in a real app
+    imagePicker: ImagePicker, // This should be provided by koin or composition local in a real app
+    onBackClick: () -> Unit = {}
 ) {
     val state by wizardViewModel.state.collectAsState()
     val wizardSteps = remember(state.draft.adType) {
@@ -79,7 +80,13 @@ fun GreenPagesClassifiedWizard(
                 .takeIf { it >= 0 } ?: 0
             if (currentStepIndex < wizardSteps.size - 1) {
                 ClassifiedWizardBottomBar(
-                    onBack = { wizardViewModel.previousStep() },
+                    onBack = { 
+                        if (currentStepIndex == 0) {
+                            onBackClick()
+                        } else {
+                            wizardViewModel.previousStep()
+                        }
+                    },
                     onNext = {
                         // Handle next with potential async operations
                         // For now, just move to next step
