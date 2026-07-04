@@ -1,4 +1,4 @@
-package com.green.yp.app.components.classified
+package com.green.yp.app.wizard.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,15 +17,18 @@ import androidx.compose.ui.unit.dp
 import com.green.yp.app.components.DropdownTextField
 import com.green.yp.app.enum.StateEnum
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.wizard.ClassifiedWizardViewModel
 
 @Composable
 fun AdLocation(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    wizardViewModel: ClassifiedWizardViewModel? = null
 ) {
-    var address by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
-    var selectedState by remember { mutableStateOf<StateEnum?>(null) }
-    var zipCode by remember { mutableStateOf("") }
+    val address = wizardViewModel?.state?.collectAsState()?.value?.draft?.address ?: ""
+    val city = wizardViewModel?.state?.collectAsState()?.value?.draft?.city ?: ""
+    val state = wizardViewModel?.state?.collectAsState()?.value?.draft?.state ?: ""
+    val zipCode = wizardViewModel?.state?.collectAsState()?.value?.draft?.postalCode ?: ""
+    val selectedState = if (state.isNotEmpty()) StateEnum.valueOf(state) else null
 
     Column(
         modifier = modifier
@@ -59,7 +62,7 @@ fun AdLocation(
             value = address,
             onValueChange = { input ->
                 if (input.all { it.isLetterOrDigit() || it.isWhitespace() }) {
-                    address = input
+                    wizardViewModel?.updateAddress(input)
                 }
             },
             label = { Text("Address*") },
@@ -70,7 +73,9 @@ fun AdLocation(
         // City Field - Required
         OutlinedTextField(
             value = city,
-            onValueChange = { city = it },
+            onValueChange = { 
+                wizardViewModel?.updateCity(it)
+            },
             label = { Text("City*") },
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             singleLine = true
@@ -79,7 +84,9 @@ fun AdLocation(
         // State Field - DropDownTextField with StateEnum
         DropdownTextField(
             value = selectedState,
-            onValueChange = { selectedState = it },
+            onValueChange = { 
+                wizardViewModel?.updateStateCode(it.name)
+            },
             label = "State*",
             entries = StateEnum.entries.toTypedArray(),
             displayName = { it.displayName }
@@ -92,7 +99,7 @@ fun AdLocation(
             value = zipCode,
             onValueChange = { input ->
                 if (input.all { it.isDigit() || it == '-' }) {
-                    zipCode = input
+                    wizardViewModel?.updatePostalCode(input)
                 }
             },
             label = { Text("Zip Code*") },

@@ -1,5 +1,6 @@
 package com.green.yp.app.wizard
 
+import androidx.lifecycle.ViewModel
 import com.green.yp.app.shared.dto.classified.ClassifiedRequest
 import com.green.yp.app.shared.repository.ClassifiedRepository
 import com.green.yp.app.wizard.ClassifiedDraft
@@ -12,7 +13,7 @@ import kotlin.uuid.Uuid
 
 class ClassifiedWizardViewModel(
     private val repository: ClassifiedRepository
-) {
+) : ViewModel(){
 
     private val _state = MutableStateFlow(ClassifiedWizardState())
 

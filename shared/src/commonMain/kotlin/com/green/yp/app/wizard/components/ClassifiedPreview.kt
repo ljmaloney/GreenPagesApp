@@ -1,4 +1,4 @@
-package com.green.yp.app.components.classified
+package com.green.yp.app.wizard.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -64,7 +65,7 @@ fun ClassifiedPreviewContent(
 
         if (classified == null) {
             Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
-                CircularProgressIndicator(modifier = Modifier.align(androidx.compose.ui.Alignment.Center))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         } else {
             // Horizontal Image Gallery

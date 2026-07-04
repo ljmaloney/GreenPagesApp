@@ -1,4 +1,4 @@
-package com.green.yp.app
+package com.green.yp.app.wizard
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -7,31 +7,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.green.yp.app.components.ClassifiedWizardBottomBar
 import com.green.yp.app.components.EmailValidationComponent
 import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.components.WizardProgressIndicator
 import com.green.yp.app.components.WizardStep
-import com.green.yp.app.components.classified.*
 import com.green.yp.app.media.ImagePicker
-import com.green.yp.app.media.ImageResult
-import com.green.yp.app.shared.dto.PageableResponse
 import com.green.yp.app.shared.dto.classified.*
-import com.green.yp.app.shared.dto.reference.LineOfBusiness
-import com.green.yp.app.shared.dto.search.SearchResponseDTO
-import com.green.yp.app.shared.repository.ClassifiedReferenceRepository
-import com.green.yp.app.shared.repository.ClassifiedRepository
-import com.green.yp.app.shared.repository.ReferenceRepository
-import com.green.yp.app.shared.repository.SearchRepository
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
 import com.green.yp.app.ui.theme.DarkGreen
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.green.yp.app.wizard.components.AdDetails
+import com.green.yp.app.wizard.components.AdLocation
+import com.green.yp.app.wizard.components.ClassifiedAdTypeSelector
+import com.green.yp.app.wizard.components.ClassifiedPreview
+import com.green.yp.app.wizard.components.ContactInformation
+import com.green.yp.app.wizard.components.UploadImages
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
@@ -40,16 +34,11 @@ fun GreenPagesClassifiedWizard(
     classifiedReferenceViewModel: ClassifiedReferenceViewModel = koinViewModel(),
     referenceViewModel: ReferenceViewModel = koinViewModel(),
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
+    wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
     imagePicker: ImagePicker // This should be provided by koin or composition local in a real app
 ) {
-    var currentStepIndex by remember { mutableStateOf(0) }
-    val createdAd by classifiedViewModel.createdAd.collectAsState()
-    
-    var selectedAdType by remember { mutableStateOf<ClassifiedAdType?>(null) }
-    var emailValidationCode by remember { mutableStateOf("") }
-    
-    // Dynamic steps based on selected ad type
-    val wizardSteps = remember(selectedAdType) {
+    val state by wizardViewModel.state.collectAsState()
+    val wizardSteps = remember(state.draft.adType) {
         val steps = mutableListOf(
             WizardStep("Ad Package"),
             WizardStep("Ad Details"),
@@ -58,7 +47,12 @@ fun GreenPagesClassifiedWizard(
             WizardStep("Validate Email")
         )
         
-        if ((selectedAdType?.features?.maxImages ?: 0) > 0) {
+        // Check if ad type has been selected and has images enabled
+        val maxImages = state.draft.adType?.let { adTypeId ->
+            classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == adTypeId }?.features?.maxImages ?: 0
+        } ?: 0
+        
+        if (maxImages > 0) {
             steps.add(WizardStep("Upload Images"))
         }
         
@@ -75,70 +69,86 @@ fun GreenPagesClassifiedWizard(
                 )
                 WizardProgressIndicator(
                     steps = wizardSteps,
-                    currentStep = currentStepIndex
+                    currentStep = wizardSteps.indexOfFirst { it.title == state.currentStep.name.replace("_", " ") }
+                        .takeIf { it >= 0 } ?: 0
                 )
             }
         },
         bottomBar = {
+            val currentStepIndex = wizardSteps.indexOfFirst { it.title == state.currentStep.name.replace("_", " ") }
+                .takeIf { it >= 0 } ?: 0
             if (currentStepIndex < wizardSteps.size - 1) {
                 ClassifiedWizardBottomBar(
-                    onBack = { if (currentStepIndex > 0) currentStepIndex-- },
-                    onNext = { 
-                        if (currentStepIndex < wizardSteps.size - 1) currentStepIndex++ 
+                    onBack = { wizardViewModel.previousStep() },
+                    onNext = {
+                        // Handle next with potential async operations
+                        // For now, just move to next step
+                        if (currentStepIndex < wizardSteps.size - 1) {
+                            // In a real app, you'd handle suspend functions properly
+                        }
                     },
-                    onPreview = { currentStepIndex = wizardSteps.size - 1 },
+                    onPreview = { },
                     currentStep = currentStepIndex,
-                    totalSteps = wizardSteps.size
+                    totalSteps = wizardSteps.size,
+                    isLoading = state.loading,
+                    viewModel = wizardViewModel
                 )
             }
         }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            val currentStepTitle = wizardSteps[currentStepIndex].title
             
-            when (currentStepTitle) {
-                "Ad Package" -> {
+            when (state.currentStep) {
+                ClassifiedWizardStep.PACKAGE -> {
                     ClassifiedAdTypeSelector(
                         viewModel = classifiedReferenceViewModel,
-                        onAdTypeSelected = { 
-                            selectedAdType = it
+                        onAdTypeSelected = { adType ->
+                            wizardViewModel.updateAdType(adType.adTypeId)
                         }
                     )
                 }
-                "Ad Details" -> {
+                ClassifiedWizardStep.DETAILS -> {
                     AdDetails(
-                        viewModel = classifiedReferenceViewModel
+                        viewModel = classifiedReferenceViewModel,
+                        wizardViewModel = wizardViewModel
                     )
                 }
-                "Ad Location" -> {
-                    AdLocation()
+                ClassifiedWizardStep.LOCATION -> {
+                    AdLocation(
+                        wizardViewModel = wizardViewModel
+                    )
                 }
-                "Contact Info" -> {
-                    ContactInformation()
+                ClassifiedWizardStep.CONTACT -> {
+                    ContactInformation(
+                        wizardViewModel = wizardViewModel
+                    )
                 }
-                "Validate Email" -> {
+                ClassifiedWizardStep.EMAIL_VALIDATION -> {
                     EmailValidationComponent(
                         onValidate = { code ->
-                            emailValidationCode = code
+                            // Handle email validation
+                            // This would typically call wizardViewModel to validate the email
                         }
                     )
                 }
-                "Upload Images" -> {
-                    createdAd?.let { ad ->
+                ClassifiedWizardStep.IMAGES -> {
+                    state.listingId?.let { listingId ->
                         UploadImages(
-                            classifiedId = ad.classifiedId,
-                            maxImages = selectedAdType?.features?.maxImages ?: 0,
+                            classifiedId = listingId,
+                            maxImages = state.draft.adType?.let { adTypeId ->
+                                classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == adTypeId }?.features?.maxImages ?: 0
+                            } ?: 0,
                             viewModel = classifiedViewModel,
                             imagePicker = imagePicker
                         )
-                    } ?: Text("Please complete Ad Details first", modifier = Modifier.padding(16.dp))
+                    } ?: Text("Please complete earlier steps first", modifier = Modifier.padding(16.dp))
                 }
-                "Preview" -> {
+                ClassifiedWizardStep.PREVIEW -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Box(modifier = Modifier.weight(1f)) {
-                            createdAd?.let { ad ->
+                            state.listingId?.let { listingId ->
                                 ClassifiedPreview(
-                                    classifiedId = ad.classifiedId,
+                                    classifiedId = listingId,
                                     viewModel = classifiedViewModel
                                 )
                             } ?: Text("Ad data not found", modifier = Modifier.padding(16.dp))
@@ -154,6 +164,9 @@ fun GreenPagesClassifiedWizard(
                             Text("Place Ad", color = Color.White)
                         }
                     }
+                }
+                ClassifiedWizardStep.PAYMENT -> {
+                    Text("Payment step", modifier = Modifier.padding(16.dp))
                 }
             }
         }

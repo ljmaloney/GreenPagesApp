@@ -1,4 +1,4 @@
-package com.green.yp.app.components.classified
+package com.green.yp.app.wizard.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,15 +12,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.wizard.ClassifiedWizardViewModel
 
 @Composable
 fun ContactInformation(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    wizardViewModel: ClassifiedWizardViewModel? = null
 ) {
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
+    val firstName = wizardViewModel?.state?.collectAsState()?.value?.draft?.firstName ?: ""
+    val lastName = wizardViewModel?.state?.collectAsState()?.value?.draft?.lastName ?: ""
+    val email = wizardViewModel?.state?.collectAsState()?.value?.draft?.emailAddress ?: ""
+    val phoneNumber = wizardViewModel?.state?.collectAsState()?.value?.draft?.phoneNumber ?: ""
 
     Column(
         modifier = modifier
@@ -41,7 +43,7 @@ fun ContactInformation(
             value = firstName,
             onValueChange = { input ->
                 if (input.isEmpty() || input.all { it.isLetter() }) {
-                    firstName = input
+                    wizardViewModel?.updateFirstName(input)
                 }
             },
             label = { Text("First Name*") },
@@ -59,7 +61,7 @@ fun ContactInformation(
             value = lastName,
             onValueChange = { input ->
                 if (input.isEmpty() || input.all { it.isLetter() || it == '-' || it == ' ' }) {
-                    lastName = input
+                    wizardViewModel?.updateLastName(input)
                 }
             },
             label = { Text("Last Name*") },
@@ -75,7 +77,9 @@ fun ContactInformation(
         // Email Address - Required, Valid format
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { 
+                wizardViewModel?.updateEmailAddress(it)
+            },
             label = { Text("Email Address*") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
@@ -93,7 +97,7 @@ fun ContactInformation(
             value = phoneNumber,
             onValueChange = { input ->
                 if (input.all { it.isDigit() || it == '-' || it == '(' || it == ')' || it == ' ' }) {
-                    phoneNumber = input
+                    wizardViewModel?.updatePhoneNumber(input)
                 }
             },
             label = { Text("Phone Number*") },

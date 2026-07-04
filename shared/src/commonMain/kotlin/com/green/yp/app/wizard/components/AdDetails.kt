@@ -1,4 +1,4 @@
-package com.green.yp.app.components.classified
+package com.green.yp.app.wizard.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,8 +21,8 @@ import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.repository.ClassifiedReferenceRepository
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.wizard.ClassifiedWizardViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -30,19 +30,25 @@ import kotlin.uuid.Uuid
 @Composable
 fun AdDetails(
     viewModel: ClassifiedReferenceViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    wizardViewModel: ClassifiedWizardViewModel? = null
 ) {
     val categories by viewModel.categories.collectAsState()
     
-    var selectedCategoryId by remember { mutableStateOf<Uuid?>(null) }
-    var price by remember { mutableStateOf("") }
-    var selectedPricePerIndex by remember { mutableStateOf(0) }
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    val selectedCategoryId = wizardViewModel?.state?.collectAsState()?.value?.draft?.categoryId
+    val price = wizardViewModel?.state?.collectAsState()?.value?.draft?.price?.toString() ?: ""
+    val pricePerUnitType = wizardViewModel?.state?.collectAsState()?.value?.draft?.pricePerUnitType ?: ""
+    val title = wizardViewModel?.state?.collectAsState()?.value?.draft?.title ?: ""
+    val description = wizardViewModel?.state?.collectAsState()?.value?.draft?.description ?: ""
 
     val chipItems = remember(categories) {
         categories.map { ChipItem(it.categoryId, it.name) }
     }
+    
+    val selectedPricePerIndex = if (pricePerUnitType.isNotEmpty()) {
+        PricePerEnum.entries.indexOfFirst { it.displayName == pricePerUnitType }
+            .takeIf { it >= 0 } ?: 0
+    } else 0
 
     Column(
         modifier = modifier
@@ -62,7 +68,9 @@ fun AdDetails(
             title = "Category*",
             items = chipItems,
             selectedId = selectedCategoryId,
-            onItemSelected = { selectedCategoryId = it.id },
+            onItemSelected = { 
+                wizardViewModel?.updateCategory(it.id)
+            },
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -71,7 +79,8 @@ fun AdDetails(
             onValueChange = { input ->
                 // Allow only numbers and a single decimal point with up to 2 decimal places
                 if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
-                    price = input
+                    val priceValue = if (input.isEmpty()) null else input.toDoubleOrNull()
+                    wizardViewModel?.updatePrice(priceValue)
                 }
             },
             label = { Text("Price (USD)*") },
@@ -93,7 +102,9 @@ fun AdDetails(
                     items = PricePerEnum.entries,
                     selectedIndex = selectedPricePerIndex,
                     itemLabel = { it.displayName },
-                    onSelected = { selectedPricePerIndex = it }
+                    onSelected = { 
+                        wizardViewModel?.updatePricePerUnitType(PricePerEnum.entries[it].displayName)
+                    }
                 )
             }
         }
@@ -103,7 +114,7 @@ fun AdDetails(
             onValueChange = { input ->
                 // Allow only alphabetical and numerical characters
                 if (input.all { it.isLetterOrDigit() || it.isWhitespace() }) {
-                    title = input
+                    wizardViewModel?.updateTitle(input)
                 }
             },
             label = { Text("Title") },
@@ -113,7 +124,9 @@ fun AdDetails(
 
         OutlinedTextField(
             value = description,
-            onValueChange = { description = it },
+            onValueChange = { 
+                wizardViewModel?.updateDescription(it)
+            },
             label = { Text("Description") },
             modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
             minLines = 3
