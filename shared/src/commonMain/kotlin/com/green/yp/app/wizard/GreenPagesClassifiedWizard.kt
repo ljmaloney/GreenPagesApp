@@ -140,19 +140,17 @@ fun GreenPagesClassifiedWizard(
                 }
                 ClassifiedWizardStep.IMAGES -> {
                     state.listingId?.let { listingId ->
-                        imagePicker?.let { picker ->
-                            UploadImages(
-                                classifiedId = listingId,
-                                maxImages = state.draft.adType?.let { adTypeId ->
-                                    classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == adTypeId }?.features?.maxImages ?: 0
-                                } ?: 0,
-                                viewModel = classifiedViewModel,
-                                imagePicker = picker
-                            )
-                        }
+                       imagePicker?.let { picker ->
+                           UploadImages(
+                               classifiedId = listingId,
+                               maxImages = state.draft.adType?.let { adTypeId ->
+                                   classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == adTypeId }?.features?.maxImages ?: 0
+                               } ?: 0,
+                               viewModel = classifiedViewModel,
+                               imagePicker = picker
+                           )
+                       } ?: Text("Please complete earlier steps first", modifier = Modifier.padding(16.dp))
                     }
-                }
-                    } ?: Text("Please complete earlier steps first", modifier = Modifier.padding(16.dp))
                 }
                 ClassifiedWizardStep.PREVIEW -> {
                     Column(modifier = Modifier.fillMaxSize()) {
