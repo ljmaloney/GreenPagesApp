@@ -23,6 +23,7 @@ import com.green.yp.app.shared.dto.search.SearchRequestParams
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
+import com.green.yp.app.wizard.GreenPagesClassifiedWizard
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -107,6 +108,9 @@ fun GreenPagesMainScreen(
                     onAppear = {
                         locationManager.startLocationUpdates()
                     }
+                )
+                2 -> GreenPagesClassifiedWizard(
+                    classifiedReferenceViewModel = classifiedReferenceViewModel
                 )
                 else -> {
                     // TODO: Other screens
