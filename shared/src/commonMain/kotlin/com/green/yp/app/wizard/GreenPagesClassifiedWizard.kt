@@ -35,7 +35,7 @@ fun GreenPagesClassifiedWizard(
     referenceViewModel: ReferenceViewModel = koinViewModel(),
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
-    imagePicker: ImagePicker, // This should be provided by koin or composition local in a real app
+    imagePicker: ImagePicker? = null, // This should be provided by koin or composition local in a real app
     onBackClick: () -> Unit = {}
 ) {
     val state by wizardViewModel.state.collectAsState()
@@ -140,14 +140,18 @@ fun GreenPagesClassifiedWizard(
                 }
                 ClassifiedWizardStep.IMAGES -> {
                     state.listingId?.let { listingId ->
-                        UploadImages(
-                            classifiedId = listingId,
-                            maxImages = state.draft.adType?.let { adTypeId ->
-                                classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == adTypeId }?.features?.maxImages ?: 0
-                            } ?: 0,
-                            viewModel = classifiedViewModel,
-                            imagePicker = imagePicker
-                        )
+                        imagePicker?.let { picker ->
+                            UploadImages(
+                                classifiedId = listingId,
+                                maxImages = state.draft.adType?.let { adTypeId ->
+                                    classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == adTypeId }?.features?.maxImages ?: 0
+                                } ?: 0,
+                                viewModel = classifiedViewModel,
+                                imagePicker = picker
+                            )
+                        }
+                    }
+                }
                     } ?: Text("Please complete earlier steps first", modifier = Modifier.padding(16.dp))
                 }
                 ClassifiedWizardStep.PREVIEW -> {
