@@ -11,6 +11,7 @@ import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
+import com.green.yp.app.wizard.ClassifiedWizardViewModel
 import de.jensklingenberg.ktorfit.Ktorfit
 import org.koin.dsl.module
 import io.ktor.client.*
@@ -74,5 +75,9 @@ val appModule = module {
 
     factory {
         ReferenceViewModel(get<ReferenceRepository>())
+    }
+
+    factory {
+        ClassifiedWizardViewModel(get<ClassifiedRepository>())
     }
 }
