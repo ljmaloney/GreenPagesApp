@@ -1,27 +1,41 @@
 package com.green.yp.app.wizard.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.green.yp.app.media.ClassifiedImageUploadComponent
 import com.green.yp.app.media.ImagePicker
+import com.green.yp.app.media.ImageResult
 import com.green.yp.app.shared.dto.classified.ImageGallery
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.ui.theme.DarkGreen
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-import androidx.compose.ui.tooling.preview.Preview
-import com.green.yp.app.media.ImageResult
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable

@@ -1,8 +1,8 @@
 package com.green.yp.app.shared.dto.classified
 
-import kotlin.uuid.Uuid
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.uuid.Uuid
 
 @Serializable
 data class ClassifiedCategory(

@@ -3,10 +3,12 @@ package com.green.yp.app.shared.repository
 import com.green.yp.app.shared.api.ClassifiedReferenceApi
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.ServerResponseException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import io.ktor.client.plugins.*
 
 class ClassifiedReferenceRepositoryImpl(
     private val classifiedApi: ClassifiedReferenceApi) : ClassifiedReferenceRepository {

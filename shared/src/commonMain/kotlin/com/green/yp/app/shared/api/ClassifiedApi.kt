@@ -1,16 +1,15 @@
 package com.green.yp.app.shared.api
 
 import com.green.yp.app.shared.dto.ResponseWrapper
+import com.green.yp.app.shared.dto.classified.ClassifiedPayment
+import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
 import com.green.yp.app.shared.dto.classified.ClassifiedRequest
 import com.green.yp.app.shared.dto.classified.ClassifiedResponse
 import com.green.yp.app.shared.dto.classified.ImageGallery
-import com.green.yp.app.shared.dto.classified.ClassifiedPayment
-import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
-import de.jensklingenberg.ktorfit.http.POST
 import de.jensklingenberg.ktorfit.http.Body
 import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Multipart
-import de.jensklingenberg.ktorfit.http.Part
+import de.jensklingenberg.ktorfit.http.POST
 import de.jensklingenberg.ktorfit.http.Path
 import de.jensklingenberg.ktorfit.http.Query
 import io.ktor.client.request.forms.MultiPartFormDataContent

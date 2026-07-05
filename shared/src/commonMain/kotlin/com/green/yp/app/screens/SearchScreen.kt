@@ -39,6 +39,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.UserLocation
+import com.green.yp.app.components.AlertBanner
+import com.green.yp.app.components.NoSearchResultsAlert
 import com.green.yp.app.getLocationManager
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.dto.reference.LineOfBusiness
@@ -47,8 +49,6 @@ import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
-import com.green.yp.app.components.AlertBanner
-import com.green.yp.app.components.NoSearchResultsAlert
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.round
