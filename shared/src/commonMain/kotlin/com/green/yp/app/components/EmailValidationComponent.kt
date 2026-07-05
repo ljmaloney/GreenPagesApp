@@ -81,7 +81,7 @@ fun EmailValidationComponent(
                 OTPInputField(
                     value = char,
                     onValueChange = { newValue ->
-                        val filtered = newValue.filter { it.isLetterOrDigit() }.uppercase()
+                        val filtered = newValue.filter { it.isLetterOrDigit() }
                         if (filtered.isNotEmpty()) {
                             // Replace or add character at index
                             val newCode = if (index < code.length) {

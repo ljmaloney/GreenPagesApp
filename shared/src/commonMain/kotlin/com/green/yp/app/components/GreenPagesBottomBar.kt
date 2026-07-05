@@ -38,7 +38,7 @@ fun GreenPagesBottomBar(
     NavigationBar(
         containerColor = Color.White,
         contentColor = DarkGreen,
-        modifier = Modifier.navigationBarsPadding()
+        modifier = Modifier
     ) {
         navItems.forEachIndexed { index, item ->
             val isSelected = selectedTab == index

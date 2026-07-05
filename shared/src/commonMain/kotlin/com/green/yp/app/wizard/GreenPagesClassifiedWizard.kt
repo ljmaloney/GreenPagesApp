@@ -6,10 +6,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,6 +37,7 @@ import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.ui.theme.LightLightGold
 import com.green.yp.app.wizard.components.AdDetails
 import com.green.yp.app.wizard.components.AdLocation
 import com.green.yp.app.wizard.components.ClassifiedAdSelector
@@ -56,6 +62,7 @@ fun GreenPagesClassifiedWizard(
 ) {
     val scope = rememberCoroutineScope()
     val state by wizardViewModel.state.collectAsState()
+    val scrollState = rememberScrollState()
     
     // Local state to hold the draft during the current step. 
     // It resets to the committed draft whenever the step changes.
@@ -84,7 +91,7 @@ fun GreenPagesClassifiedWizard(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().imePadding(),
         containerColor = Color.White,
         topBar = {
             Column {
@@ -100,113 +107,146 @@ fun GreenPagesClassifiedWizard(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
-        },
-        bottomBar = {
+        }
+        ,bottomBar = {
             val currentStepIndex = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
                 .takeIf { it >= 0 } ?: 0
             if (currentStepIndex < wizardSteps.size - 1) {
-                ClassifiedWizardBottomBar(
-                    onBack = { 
-                        if (currentStepIndex == 0) {
-                            onBackClick()
-                        } else {
-                            wizardViewModel.previousStep()
-                        }
-                    },
-                    onNext = {
-                        // Commit the working draft to the ViewModel before moving to the next step
-                        wizardViewModel.updateDraft { workingDraft }
-                        scope.launch {
-                            wizardViewModel.nextStep()
-                        }
-                    },
-                    onPreview = { },
-                    currentStep = currentStepIndex,
-                    totalSteps = wizardSteps.size,
-                    isLoading = state.loading,
-                    viewModel = wizardViewModel
-                )
+                Surface(
+                    color = LightLightGold,
+                    shadowElevation = 8.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    ClassifiedWizardBottomBar(
+                        onBack = {
+                            if (currentStepIndex == 0) {
+                                onBackClick()
+                            } else {
+                                wizardViewModel.previousStep()
+                            }
+                        },
+                        onNext = {
+                            // Trim trailing whitespace from all string fields in workingDraft before committing
+                            val trimmedDraft = workingDraft.copy(
+                                firstName = workingDraft.firstName.trimEnd(),
+                                lastName = workingDraft.lastName.trimEnd(),
+                                address = workingDraft.address.trimEnd(),
+                                city = workingDraft.city.trimEnd(),
+                                state = workingDraft.state.trimEnd(),
+                                postalCode = workingDraft.postalCode.trimEnd(),
+                                phoneNumber = workingDraft.phoneNumber.trimEnd(),
+                                emailAddress = workingDraft.emailAddress.trimEnd(),
+                                title = workingDraft.title.trimEnd(),
+                                description = workingDraft.description.trimEnd(),
+                                pricePerUnitType = workingDraft.pricePerUnitType?.trimEnd()
+                            )
+                            
+                            // Commit the trimmed draft to the ViewModel before moving to the next step
+                            wizardViewModel.updateDraft { trimmedDraft }
+                            scope.launch {
+                                wizardViewModel.nextStep()
+                            }
+                        },
+                        onPreview = { },
+                        currentStep = currentStepIndex,
+                        totalSteps = wizardSteps.size,
+                        isLoading = state.loading,
+                        viewModel = wizardViewModel
+                    )
+                }
             }
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-            
-            when (state.currentStep) {
-                ClassifiedWizardStep.PACKAGE -> {
-                    ClassifiedAdSelector(
-                        viewModel = classifiedReferenceViewModel,
-                        selectedAdType = workingDraft.adType,
-                        onAdTypeSelected = { adType ->
-                            workingDraft = workingDraft.copy(adType = adType.adTypeId)
-                        }
-                    )
-                }
-                ClassifiedWizardStep.DETAILS -> {
-                    AdDetails(
-                        viewModel = classifiedReferenceViewModel,
-                        draft = workingDraft,
-                        onDraftChange = { workingDraft = it }
-                    )
-                }
-                ClassifiedWizardStep.LOCATION -> {
-                    AdLocation(
-                        draft = workingDraft,
-                        onDraftChange = { workingDraft = it }
-                    )
-                }
-                ClassifiedWizardStep.CONTACT -> {
-                    ContactInformation(
-                        draft = workingDraft,
-                        onDraftChange = { workingDraft = it }
-                    )
-                }
-                ClassifiedWizardStep.EMAIL_VALIDATION -> {
-                    EmailValidationComponent(
-                        onValidate = { code ->
-                            // Handle email validation
-                            // This would typically call wizardViewModel to validate the email
-                        }
-                    )
-                }
-                ClassifiedWizardStep.IMAGES -> {
-                    state.listingId?.let { listingId ->
-                       imagePicker?.let { picker ->
-                           UploadImages(
-                               classifiedId = listingId,
-                               maxImages = state.draft.adType?.let { adTypeId ->
-                                   classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == adTypeId }?.features?.maxImages ?: 0
-                               } ?: 0,
-                               viewModel = classifiedViewModel,
-                               imagePicker = picker
-                           )
-                       } ?: Text("Please complete earlier steps first", modifier = Modifier.padding(16.dp))
+        Column( modifier =  Modifier
+            .padding(paddingValues)
+            .fillMaxSize()) {
+                when (state.currentStep) {
+                    ClassifiedWizardStep.PACKAGE -> {
+                        ClassifiedAdSelector(
+                            viewModel = classifiedReferenceViewModel,
+                            selectedAdType = workingDraft.adType,
+                            onAdTypeSelected = { adType ->
+                                workingDraft = workingDraft.copy(adType = adType.adTypeId)
+                            }
+                        )
                     }
-                }
-                ClassifiedWizardStep.PREVIEW -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            state.listingId?.let { listingId ->
-                                ClassifiedPreview(
+
+                    ClassifiedWizardStep.DETAILS -> {
+                        AdDetails(
+                            viewModel = classifiedReferenceViewModel,
+                            draft = workingDraft,
+                            onDraftChange = { workingDraft = it }
+                        )
+                    }
+
+                    ClassifiedWizardStep.LOCATION -> {
+                        AdLocation(
+                            draft = workingDraft,
+                            onDraftChange = { workingDraft = it }
+                        )
+                    }
+
+                    ClassifiedWizardStep.CONTACT -> {
+                        ContactInformation(
+                            draft = workingDraft,
+                            onDraftChange = { workingDraft = it }
+                        )
+                    }
+
+                    ClassifiedWizardStep.EMAIL_VALIDATION -> {
+                        EmailValidationComponent(
+                            onValidate = { code ->
+                                // Handle email validation
+                                // This would typically call wizardViewModel to validate the email
+                            }
+                        )
+                    }
+
+                    ClassifiedWizardStep.IMAGES -> {
+                        state.listingId?.let { listingId ->
+                            imagePicker?.let { picker ->
+                                UploadImages(
                                     classifiedId = listingId,
-                                    viewModel = classifiedViewModel
+                                    maxImages = state.draft.adType?.let { adTypeId ->
+                                        classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == adTypeId }?.features?.maxImages
+                                            ?: 0
+                                    } ?: 0,
+                                    viewModel = classifiedViewModel,
+                                    imagePicker = picker
                                 )
-                            } ?: Text("Ad data not found", modifier = Modifier.padding(16.dp))
-                        }
-                        
-                        Button(
-                            onClick = { /* TODO: Implement Place Ad logic */ },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
-                        ) {
-                            Text("Place Ad", color = Color.White)
+                            } ?: Text(
+                                "Please complete earlier steps first",
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
                     }
-                }
-                ClassifiedWizardStep.PAYMENT -> {
-                    Text("Payment step", modifier = Modifier.padding(16.dp))
-                }
+
+                    ClassifiedWizardStep.PREVIEW -> {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                state.listingId?.let { listingId ->
+                                    ClassifiedPreview(
+                                        classifiedId = listingId,
+                                        viewModel = classifiedViewModel
+                                    )
+                                } ?: Text("Ad data not found", modifier = Modifier.padding(16.dp))
+                            }
+
+                            Button(
+                                onClick = { /* TODO: Implement Place Ad logic */ },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
+                            ) {
+                                Text("Place Ad", color = Color.White)
+                            }
+                        }
+                    }
+
+                    ClassifiedWizardStep.PAYMENT -> {
+                        Text("Payment step", modifier = Modifier.padding(16.dp))
+                    }
             }
         }
     }
