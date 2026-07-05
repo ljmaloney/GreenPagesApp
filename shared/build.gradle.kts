@@ -71,6 +71,7 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+            implementation(libs.kermit)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

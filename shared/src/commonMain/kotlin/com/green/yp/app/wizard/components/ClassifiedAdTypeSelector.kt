@@ -18,9 +18,11 @@ import com.green.yp.app.shared.dto.classified.ClassifiedAdFeatures
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,9 +59,27 @@ fun ClassifiedAdTypeSelectorContent(
     modifier: Modifier = Modifier,
     onAdTypeSelected: (ClassifiedAdType) -> Unit = {}
 ) {
-    val pagerState = rememberPagerState(pageCount = { adTypes.size })
+    val initialPage = remember(adTypes) {
+        val index = adTypes.indexOfFirst { it.defaultPackage }
+        if (index >= 0) index else 0
+    }
+    
+    val pagerState = rememberPagerState(
+        initialPage = initialPage,
+        pageCount = { adTypes.size }
+    )
+    
     var selectedId by remember { 
-        mutableStateOf(adTypes.find { it.defaultPackage }?.adTypeId ?: adTypes.firstOrNull()?.adTypeId) 
+        mutableStateOf(adTypes.getOrNull(initialPage)?.adTypeId) 
+    }
+
+    // Ensure onAdTypeSelected is called for the initial selection if it's the first time
+    LaunchedEffect(selectedId) {
+        if (selectedId != null) {
+            adTypes.find { it.adTypeId == selectedId }?.let {
+                onAdTypeSelected(it)
+            }
+        }
     }
 
     Column(
@@ -76,9 +96,9 @@ fun ClassifiedAdTypeSelectorContent(
             ClassifiedAdTypeCard(
                 adType = adType,
                 isSelected = adType.adTypeId == selectedId,
+                modifier = Modifier.height(450.dp), // Fixed height for all cards
                 onClick = {
                     selectedId = adType.adTypeId
-                    onAdTypeSelected(adType)
                 }
             )
         }
@@ -94,13 +114,17 @@ fun ClassifiedAdTypeSelectorContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(adTypes.size) { iteration ->
-                val color = if (pagerState.currentPage == iteration) DarkGreen else Color.LightGray
+                val isCurrentPage = pagerState.currentPage == iteration
+                val color = if (isCurrentPage) DarkGreen else Color.LightGray
+                val width = if (isCurrentPage) 24.dp else 8.dp
+                
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
                         .clip(CircleShape)
                         .background(color)
-                        .size(8.dp)
+                        .size(width = width, height = 8.dp)
+                        .animateContentSize()
                 )
             }
         }

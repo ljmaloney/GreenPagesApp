@@ -41,7 +41,7 @@ fun ClassifiedAdTypeCard(
     ) {
         OutlinedCard(
             onClick = onClick,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(), // Fill the height provided by the selector
             colors = CardDefaults.outlinedCardColors(
                 containerColor = if (isSelected) LightLightGold else LightLightGreen,
             ),

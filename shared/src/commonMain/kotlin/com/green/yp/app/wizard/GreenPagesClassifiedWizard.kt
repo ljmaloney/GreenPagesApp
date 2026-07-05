@@ -7,12 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import com.green.yp.app.components.EmailValidationComponent
 import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.components.WizardProgressIndicator
 import com.green.yp.app.components.WizardStep
 import com.green.yp.app.media.ImagePicker
-import com.green.yp.app.shared.dto.classified.*
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
@@ -20,6 +20,7 @@ import com.green.yp.app.shared.viewmodel.SearchViewModel
 import com.green.yp.app.ui.theme.DarkGreen
 import com.green.yp.app.wizard.components.AdDetails
 import com.green.yp.app.wizard.components.AdLocation
+import com.green.yp.app.wizard.components.ClassifiedAdSelector
 import com.green.yp.app.wizard.components.ClassifiedAdTypeSelector
 import com.green.yp.app.wizard.components.ClassifiedPreview
 import com.green.yp.app.wizard.components.ContactInformation
@@ -38,14 +39,15 @@ fun GreenPagesClassifiedWizard(
     imagePicker: ImagePicker? = null, // This should be provided by koin or composition local in a real app
     onBackClick: () -> Unit = {}
 ) {
+    val scope = rememberCoroutineScope()
     val state by wizardViewModel.state.collectAsState()
     val wizardSteps = remember(state.draft.adType) {
         val steps = mutableListOf(
-            WizardStep("Ad Package"),
-            WizardStep("Ad Details"),
-            WizardStep("Ad Location"),
-            WizardStep("Contact Info"),
-            WizardStep("Validate Email")
+            WizardStep("Package"),
+            WizardStep("Details"),
+            WizardStep("Location"),
+            WizardStep("Contact"),
+            WizardStep("Email Validation")
         )
         
         // Check if ad type has been selected and has images enabled
@@ -54,7 +56,7 @@ fun GreenPagesClassifiedWizard(
         } ?: 0
         
         if (maxImages > 0) {
-            steps.add(WizardStep("Upload Images"))
+            steps.add(WizardStep("Images"))
         }
         
         steps.add(WizardStep("Preview"))
@@ -70,13 +72,13 @@ fun GreenPagesClassifiedWizard(
                 )
                 WizardProgressIndicator(
                     steps = wizardSteps,
-                    currentStep = wizardSteps.indexOfFirst { it.title == state.currentStep.name.replace("_", " ") }
+                    currentStep = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
                         .takeIf { it >= 0 } ?: 0
                 )
             }
         },
         bottomBar = {
-            val currentStepIndex = wizardSteps.indexOfFirst { it.title == state.currentStep.name.replace("_", " ") }
+            val currentStepIndex = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
                 .takeIf { it >= 0 } ?: 0
             if (currentStepIndex < wizardSteps.size - 1) {
                 ClassifiedWizardBottomBar(
@@ -88,10 +90,8 @@ fun GreenPagesClassifiedWizard(
                         }
                     },
                     onNext = {
-                        // Handle next with potential async operations
-                        // For now, just move to next step
-                        if (currentStepIndex < wizardSteps.size - 1) {
-                            // In a real app, you'd handle suspend functions properly
+                        scope.launch {
+                            wizardViewModel.nextStep()
                         }
                     },
                     onPreview = { },
@@ -107,7 +107,7 @@ fun GreenPagesClassifiedWizard(
             
             when (state.currentStep) {
                 ClassifiedWizardStep.PACKAGE -> {
-                    ClassifiedAdTypeSelector(
+                    ClassifiedAdSelector(
                         viewModel = classifiedReferenceViewModel,
                         onAdTypeSelected = { adType ->
                             wizardViewModel.updateAdType(adType.adTypeId)

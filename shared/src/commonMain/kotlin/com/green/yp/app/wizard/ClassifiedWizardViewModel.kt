@@ -1,10 +1,9 @@
 package com.green.yp.app.wizard
 
 import androidx.lifecycle.ViewModel
+import co.touchlab.kermit.Logger
 import com.green.yp.app.shared.dto.classified.ClassifiedRequest
 import com.green.yp.app.shared.repository.ClassifiedRepository
-import com.green.yp.app.wizard.ClassifiedDraft
-import com.green.yp.app.wizard.ClassifiedWizardState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +14,7 @@ class ClassifiedWizardViewModel(
     private val repository: ClassifiedRepository
 ) : ViewModel(){
 
+    private val log = Logger.withTag("green.yp.app.wizard.ClassifiedWizardViewModel")
     private val _state = MutableStateFlow(ClassifiedWizardState())
 
     val state: StateFlow<ClassifiedWizardState> =
@@ -23,6 +23,7 @@ class ClassifiedWizardViewModel(
     private inline fun updateState(
         block: ClassifiedWizardState.() -> ClassifiedWizardState
     ) {
+        log.d("Updating state : "+_state.value.toString())
         _state.update(block)
     }
 
@@ -171,29 +172,15 @@ class ClassifiedWizardViewModel(
     // ------------------------
 
     private fun validateCurrentStep(): Boolean {
-
         val draft = _state.value.draft
-
+        log.d("Validating current step - ${_state.value.currentStep}")
         return when (_state.value.currentStep) {
-
-            ClassifiedWizardStep.PACKAGE ->
-                draft.adType != null &&
-                        draft.categoryId != null
-
-            ClassifiedWizardStep.DETAILS ->
-                draft.title.isNotBlank() &&
-                        draft.description.isNotBlank()
-
+            ClassifiedWizardStep.PACKAGE -> draft.adType != null
+            ClassifiedWizardStep.DETAILS -> draft.title.isNotBlank() && draft.description.isNotBlank()
             ClassifiedWizardStep.LOCATION ->
-                draft.address.isNotBlank() &&
-                        draft.city.isNotBlank() &&
-                        draft.state.isNotBlank()
-
+                draft.address.isNotBlank() && draft.city.isNotBlank() && draft.state.isNotBlank()
             ClassifiedWizardStep.CONTACT ->
-                draft.firstName.isNotBlank() &&
-                        draft.lastName.isNotBlank() &&
-                        draft.emailAddress.isNotBlank()
-
+                draft.firstName.isNotBlank() && draft.lastName.isNotBlank() && draft.emailAddress.isNotBlank()
             else -> true
         }
     }
