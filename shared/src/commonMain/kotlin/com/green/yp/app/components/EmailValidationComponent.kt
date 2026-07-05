@@ -12,20 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,9 +33,16 @@ import com.green.yp.app.ui.theme.DarkGreen
 fun EmailValidationComponent(
     onValidate: (code: String) -> Unit,
     modifier: Modifier = Modifier,
-    headerText: String = "Validate Email Address"
+    headerText: String = "Validate Email Address",
+    isLoading: Boolean = false
 ) {
     var code by remember { mutableStateOf("") }
+    val focusRequesters = remember { List(8) { FocusRequester() } }
+    val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(Unit) {
+        focusRequesters[0].requestFocus()
+    }
 
     Column(
         modifier = Modifier
@@ -48,7 +52,7 @@ fun EmailValidationComponent(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header
+        // ... (Header and Helper text remain the same)
         Text(
             text = headerText,
             style = MaterialTheme.typography.titleLarge,
@@ -58,7 +62,6 @@ fun EmailValidationComponent(
                 .padding(bottom = 8.dp)
         )
 
-        // Helper text
         Text(
             text = "To confirm your email address is working, please check your email and enter the validation token below. Make sure to add greenyp.com to your list of approved senders.",
             style = MaterialTheme.typography.bodyMedium,
@@ -83,25 +86,37 @@ fun EmailValidationComponent(
                     onValueChange = { newValue ->
                         val filtered = newValue.filter { it.isLetterOrDigit() }
                         if (filtered.isNotEmpty()) {
-                            // Replace or add character at index
+                            val newChar = filtered.take(1)
                             val newCode = if (index < code.length) {
-                                code.replaceRange(index, index + 1, filtered.take(1))
+                                code.replaceRange(index, index + 1, newChar)
                             } else if (index == code.length) {
-                                code + filtered.take(1)
+                                code + newChar
                             } else {
-                                code // Only allow sequential entry for simplicity here
+                                code
                             }
+                            
                             if (newCode.length <= 8) {
                                 code = newCode
+                                // Auto-move to next field
+                                if (index < 7) {
+                                    focusRequesters[index + 1].requestFocus()
+                                } else {
+                                    focusManager.clearFocus()
+                                }
                             }
                         } else if (index < code.length) {
                             // Handle backspace/empty
                             code = code.removeRange(index, index + 1)
+                            // Auto-move to previous field on backspace if current is empty
+                            if (index > 0) {
+                                focusRequesters[index - 1].requestFocus()
+                            }
                         }
                     },
                     modifier = Modifier
                         .width(40.dp)
                         .height(48.dp)
+                        .focusRequester(focusRequesters[index])
                 )
             }
         }
@@ -117,9 +132,17 @@ fun EmailValidationComponent(
             colors = ButtonDefaults.buttonColors(
                 containerColor = DarkGreen
             ),
-            enabled = code.length == 8
+            enabled = code.length == 8 && !isLoading
         ) {
-            Text("Validate Email")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Validate Email")
+            }
         }
     }
 }

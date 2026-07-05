@@ -82,7 +82,12 @@ class ClassifiedRepositoryImpl(private val classifiedApi: ClassifiedApi) : Class
         _isValidated.value = false
 
         return runCatching {
-            val result = classifiedApi.validateClassifiedEmail(classifiedId, emailAddress, token)
+            // Trim and lowercase email, and trim token to ensure exact match with server records
+            val result = classifiedApi.validateClassifiedEmail(
+                classifiedId, 
+                emailAddress.trim().lowercase(),
+                token.trim()
+            )
 
             result.errorMessageApi?.let { error ->
                 _errorMessage.value = error.displayMessage

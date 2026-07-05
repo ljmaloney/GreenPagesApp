@@ -126,8 +126,13 @@ fun GreenPagesClassifiedWizard(
                             }
                         },
                         onNext = {
-                            // Trim trailing whitespace from all string fields in workingDraft before committing
-                            val trimmedDraft = workingDraft.copy(
+                        // If we are on Email Validation step, only allow Next if email is validated
+                        if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !state.emailValidated) {
+                             return@ClassifiedWizardBottomBar
+                        }
+
+                        // Trim trailing whitespace from all string fields in workingDraft before committing
+                        val trimmedDraft = workingDraft.copy(
                                 firstName = workingDraft.firstName.trimEnd(),
                                 lastName = workingDraft.lastName.trimEnd(),
                                 address = workingDraft.address.trimEnd(),
@@ -150,7 +155,7 @@ fun GreenPagesClassifiedWizard(
                         onPreview = { },
                         currentStep = currentStepIndex,
                         totalSteps = wizardSteps.size,
-                        isLoading = state.loading,
+                        isLoading = state.loading || (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !state.emailValidated),
                         viewModel = wizardViewModel
                     )
                 }
@@ -195,9 +200,11 @@ fun GreenPagesClassifiedWizard(
 
                     ClassifiedWizardStep.EMAIL_VALIDATION -> {
                         EmailValidationComponent(
+                            isLoading = state.loading,
                             onValidate = { code ->
-                                // Handle email validation
-                                // This would typically call wizardViewModel to validate the email
+                                scope.launch {
+                                    wizardViewModel.validateEmail(code)
+                                }
                             }
                         )
                     }

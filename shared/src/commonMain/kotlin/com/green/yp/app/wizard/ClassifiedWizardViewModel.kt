@@ -167,6 +167,38 @@ class ClassifiedWizardViewModel(
     }
 
     // ------------------------
+    // Server Actions
+    // ------------------------
+
+    suspend fun validateEmail(token: String): Result<Unit> {
+        val currentState = _state.value
+        val listingId = currentState.listingId ?: return Result.failure(Exception("Listing ID not found"))
+        val email = currentState.draft.emailAddress
+
+        updateState { copy(loading = true, error = null) }
+
+        val result = repository.validateClassifiedEmail(listingId, email, token)
+
+        result.onSuccess {
+            updateState {
+                copy(
+                    loading = false,
+                    emailValidated = true
+                )
+            }
+        }.onFailure { exception ->
+            updateState {
+                copy(
+                    loading = false,
+                    error = exception.message
+                )
+            }
+        }
+
+        return result
+    }
+
+    // ------------------------
     // Validation
     // ------------------------
 
@@ -253,7 +285,7 @@ class ClassifiedWizardViewModel(
             postalCode = draft.postalCode,
 
             phoneNumber = draft.phoneNumber,
-            emailAddress = draft.emailAddress,
+            emailAddress = draft.emailAddress.trim().lowercase(),
 
             title = draft.title,
             description = draft.description
