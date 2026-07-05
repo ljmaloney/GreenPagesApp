@@ -1,5 +1,6 @@
 package com.green.yp.app.wizard.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -17,21 +19,25 @@ import androidx.compose.ui.unit.dp
 import com.green.yp.app.components.DropdownTextField
 import com.green.yp.app.enum.StateEnum
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.wizard.ClassifiedDraft
 import com.green.yp.app.wizard.ClassifiedWizardViewModel
 
 @Composable
 fun AdLocation(
-    modifier: Modifier = Modifier,
-    wizardViewModel: ClassifiedWizardViewModel? = null
+    draft: ClassifiedDraft,
+    onDraftChange: (ClassifiedDraft) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val address = wizardViewModel?.state?.collectAsState()?.value?.draft?.address ?: ""
-    val city = wizardViewModel?.state?.collectAsState()?.value?.draft?.city ?: ""
-    val state = wizardViewModel?.state?.collectAsState()?.value?.draft?.state ?: ""
-    val zipCode = wizardViewModel?.state?.collectAsState()?.value?.draft?.postalCode ?: ""
+    val address = draft.address
+    val city = draft.city
+    val state = draft.state
+    val zipCode = draft.postalCode
     val selectedState = if (state.isNotEmpty()) StateEnum.valueOf(state) else null
 
     Column(
-        modifier = modifier
+        modifier = Modifier
+            .background(Color.White)
+            .then(modifier)
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
@@ -58,62 +64,86 @@ fun AdLocation(
         )
 
         // Address Field - Required, Alphanumeric
-        OutlinedTextField(
-            value = address,
-            onValueChange = { input ->
-                if (input.all { it.isLetterOrDigit() || it.isWhitespace() }) {
-                    wizardViewModel?.updateAddress(input)
-                }
-            },
-            label = { Text("Address*") },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true
-        )
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Address*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = address,
+                onValueChange = { input ->
+                    if (input.all { it.isLetterOrDigit() || it.isWhitespace() }) {
+                        onDraftChange(draft.copy(address = input))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
 
         // City Field - Required
-        OutlinedTextField(
-            value = city,
-            onValueChange = { 
-                wizardViewModel?.updateCity(it)
-            },
-            label = { Text("City*") },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true
-        )
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "City*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = city,
+                onValueChange = { 
+                    onDraftChange(draft.copy(city = it))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
 
         // State Field - DropDownTextField with StateEnum
-        DropdownTextField(
-            value = selectedState,
-            onValueChange = { 
-                wizardViewModel?.updateStateCode(it.name)
-            },
-            label = "State*",
-            entries = StateEnum.entries.toTypedArray(),
-            displayName = { it.displayName }
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "State*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            DropdownTextField(
+                value = selectedState,
+                onValueChange = { 
+                    onDraftChange(draft.copy(state = it.name))
+                },
+                label = "",
+                entries = StateEnum.entries.toTypedArray(),
+                modifier = Modifier.fillMaxWidth(),
+                displayName = { it.displayName }
+            )
+        }
 
         // Zip Code Field - Numbers and Hyphen
-        OutlinedTextField(
-            value = zipCode,
-            onValueChange = { input ->
-                if (input.all { it.isDigit() || it == '-' }) {
-                    wizardViewModel?.updatePostalCode(input)
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Zip Code*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = zipCode,
+                onValueChange = { input ->
+                    if (input.all { it.isDigit() || it == '-' }) {
+                        onDraftChange(draft.copy(postalCode = input))
+                    }
+                },
+                placeholder = { Text("12345 or 12345-6789") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = {
+                    val isValid = zipCode.matches(Regex("""^(\d{5}(-\d{4})?|\d{9})$"""))
+                    if (zipCode.isNotEmpty() && !isValid) {
+                        Text("Invalid format. Use 5 digits, 9 digits, or 5-4 format.", color = MaterialTheme.colorScheme.error)
+                    }
                 }
-            },
-            label = { Text("Zip Code*") },
-            placeholder = { Text("12345 or 12345-6789") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true,
-            supportingText = {
-                val isValid = zipCode.matches(Regex("""^(\d{5}(-\d{4})?|\d{9})$"""))
-                if (zipCode.isNotEmpty() && !isValid) {
-                    Text("Invalid format. Use 5 digits, 9 digits, or 5-4 format.", color = MaterialTheme.colorScheme.error)
-                }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -122,7 +152,7 @@ fun AdLocation(
 fun AdLocationPreview() {
     MaterialTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            AdLocation()
+            AdLocation(draft = ClassifiedDraft(), onDraftChange = {})
         }
     }
 }

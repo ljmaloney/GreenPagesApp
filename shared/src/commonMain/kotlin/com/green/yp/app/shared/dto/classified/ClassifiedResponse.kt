@@ -11,13 +11,13 @@ data class ClassifiedResponse(
     @SerialName("classifiedId")
     val classifiedId: Uuid,
     @SerialName("createDate")
-    val createDate: String,
+    val createDate: String?,
     @SerialName("lastUpdateDate")
-    val lastUpdateDate: String,
+    val lastUpdateDate: String?,
     @SerialName("activeDate")
-    val activeDate: String,
+    val activeDate: String?,
     @SerialName("lastActiveDate")
-    val lastActiveDate: String,
+    val lastActiveDate: String?,
     @SerialName("renewalCount")
     val renewalCount: Int,
     @SerialName("categoryId")
@@ -27,7 +27,7 @@ data class ClassifiedResponse(
     @SerialName("price")
     val price: Double,
     @SerialName("perUnitType")
-    val perUnitType: String,
+    val perUnitType: String?,
     @SerialName("title")
     val title: String,
     @SerialName("description")

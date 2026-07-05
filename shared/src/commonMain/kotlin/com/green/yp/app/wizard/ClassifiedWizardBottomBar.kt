@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.ui.theme.DarkGreen
 import com.green.yp.app.ui.theme.DarkGold
+import com.green.yp.app.ui.theme.LightLightGold
 
 @Composable
 fun ClassifiedWizardBottomBar(
@@ -23,7 +24,7 @@ fun ClassifiedWizardBottomBar(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        tonalElevation = 4.dp,
+        color = LightLightGold,
         shadowElevation = 8.dp
     ) {
         Row(

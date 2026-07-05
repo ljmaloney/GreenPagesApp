@@ -1,5 +1,6 @@
 package com.green.yp.app.wizard.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,8 +23,10 @@ import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.repository.ClassifiedReferenceRepository
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.wizard.ClassifiedDraft
 import com.green.yp.app.wizard.ClassifiedWizardViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.green.yp.app.ui.theme.DarkGold
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -30,28 +34,32 @@ import kotlin.uuid.Uuid
 @Composable
 fun AdDetails(
     viewModel: ClassifiedReferenceViewModel,
-    modifier: Modifier = Modifier,
-    wizardViewModel: ClassifiedWizardViewModel? = null
+    draft: ClassifiedDraft,
+    onDraftChange: (ClassifiedDraft) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val categories by viewModel.categories.collectAsState()
     
-    val selectedCategoryId = wizardViewModel?.state?.collectAsState()?.value?.draft?.categoryId
-    val price = wizardViewModel?.state?.collectAsState()?.value?.draft?.price?.toString() ?: ""
-    val pricePerUnitType = wizardViewModel?.state?.collectAsState()?.value?.draft?.pricePerUnitType ?: ""
-    val title = wizardViewModel?.state?.collectAsState()?.value?.draft?.title ?: ""
-    val description = wizardViewModel?.state?.collectAsState()?.value?.draft?.description ?: ""
-
+    val initialPrice = draft.price
+    var priceInput by remember(initialPrice) { 
+        mutableStateOf(initialPrice?.let { 
+            if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() 
+        } ?: "") 
+    }
+    
     val chipItems = remember(categories) {
         categories.map { ChipItem(it.categoryId, it.name) }
     }
     
-    val selectedPricePerIndex = if (pricePerUnitType.isNotEmpty()) {
-        PricePerEnum.entries.indexOfFirst { it.displayName == pricePerUnitType }
+    val selectedPricePerIndex = if (!draft.pricePerUnitType.isNullOrBlank()) {
+        PricePerEnum.entries.indexOfFirst { it.displayName == draft.pricePerUnitType }
             .takeIf { it >= 0 } ?: 0
     } else 0
 
     Column(
-        modifier = modifier
+        modifier = Modifier
+            .background(Color.White)
+            .then(modifier)
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
@@ -67,29 +75,36 @@ fun AdDetails(
         ChipSelector(
             title = "Category*",
             items = chipItems,
-            selectedId = selectedCategoryId,
+            selectedId = draft.categoryId,
             onItemSelected = { 
-                wizardViewModel?.updateCategory(it.id)
+                onDraftChange(draft.copy(categoryId = it.id))
             },
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        OutlinedTextField(
-            value = price,
-            onValueChange = { input ->
-                // Allow only numbers and a single decimal point with up to 2 decimal places
-                if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
-                    val priceValue = if (input.isEmpty()) null else input.toDoubleOrNull()
-                    wizardViewModel?.updatePrice(priceValue)
-                }
-            },
-            label = { Text("Price (USD)*") },
-            placeholder = { Text("0.00") },
-            prefix = { Text("$") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true
-        )
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Price (USD)*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = priceInput,
+                onValueChange = { input ->
+                    // Allow only numbers and a single decimal point with up to 2 decimal places
+                    if (input.isEmpty() || input.matches(Regex("""^\d*\.?\d{0,2}$"""))) {
+                        priceInput = input
+                        val priceValue = if (input.isEmpty() || input == ".") null else input.toDoubleOrNull()
+                        onDraftChange(draft.copy(price = priceValue))
+                    }
+                },
+                placeholder = { Text("0.00") },
+                prefix = { Text("$") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
 
         Column(modifier = Modifier.padding(bottom = 16.dp)) {
             Text(
@@ -103,34 +118,47 @@ fun AdDetails(
                     selectedIndex = selectedPricePerIndex,
                     itemLabel = { it.displayName },
                     onSelected = { 
-                        wizardViewModel?.updatePricePerUnitType(PricePerEnum.entries[it].displayName)
-                    }
+                        onDraftChange(draft.copy(pricePerUnitType = PricePerEnum.entries[it].displayName))
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)
                 )
             }
         }
 
-        OutlinedTextField(
-            value = title,
-            onValueChange = { input ->
-                // Allow only alphabetical and numerical characters
-                if (input.all { it.isLetterOrDigit() || it.isWhitespace() }) {
-                    wizardViewModel?.updateTitle(input)
-                }
-            },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true
-        )
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Classified Ad Title",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = draft.title,
+                onValueChange = { input ->
+                    // Allow only alphabetical and numerical characters
+                    if (input.all { it.isLetterOrDigit() || it.isWhitespace() }) {
+                        onDraftChange(draft.copy(title = input))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
 
-        OutlinedTextField(
-            value = description,
-            onValueChange = { 
-                wizardViewModel?.updateDescription(it)
-            },
-            label = { Text("Description") },
-            modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-            minLines = 3
-        )
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Item Description",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = draft.description,
+                onValueChange = { 
+                    onDraftChange(draft.copy(description = it))
+                },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
+                minLines = 3
+            )
+        }
     }
 }
 
@@ -157,7 +185,11 @@ fun AdDetailsPreview() {
     
     MaterialTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            AdDetails(viewModel = viewModel)
+            AdDetails(
+                viewModel = viewModel,
+                draft = ClassifiedDraft(),
+                onDraftChange = {}
+            )
         }
     }
 }

@@ -27,10 +27,12 @@ fun EmailValidationComponent(
     modifier: Modifier = Modifier,
     headerText: String = "Validate Email Address"
 ) {
-    var code by remember { mutableStateOf(CharArray(8)) }
+    var code by remember { mutableStateOf("") }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
+            .background(Color.White)
+            .then(modifier)
             .fillMaxWidth()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -64,12 +66,26 @@ fun EmailValidationComponent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(8) { index ->
+                val char = code.getOrNull(index)?.toString() ?: ""
                 OTPInputField(
-                    value = code.getOrNull(index)?.toString() ?: "",
+                    value = char,
                     onValueChange = { newValue ->
-                        val filtered = newValue.filter { it.isLetterOrDigit() }
-                        if (filtered.length <= 1) {
-                            code[index] = if (filtered.isEmpty()) '\u0000' else filtered[0]
+                        val filtered = newValue.filter { it.isLetterOrDigit() }.uppercase()
+                        if (filtered.isNotEmpty()) {
+                            // Replace or add character at index
+                            val newCode = if (index < code.length) {
+                                code.replaceRange(index, index + 1, filtered.take(1))
+                            } else if (index == code.length) {
+                                code + filtered.take(1)
+                            } else {
+                                code // Only allow sequential entry for simplicity here
+                            }
+                            if (newCode.length <= 8) {
+                                code = newCode
+                            }
+                        } else if (index < code.length) {
+                            // Handle backspace/empty
+                            code = code.removeRange(index, index + 1)
                         }
                     },
                     modifier = Modifier
@@ -82,10 +98,7 @@ fun EmailValidationComponent(
         // Validate Button
         Button(
             onClick = { 
-                val validationCode = code
-                    .filter { it != '\u0000' }
-                    .joinToString("")
-                onValidate(validationCode)
+                onValidate(code)
             },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -93,7 +106,7 @@ fun EmailValidationComponent(
             colors = ButtonDefaults.buttonColors(
                 containerColor = DarkGreen
             ),
-            enabled = code.count { it != '\u0000' } == 8
+            enabled = code.length == 8
         ) {
             Text("Validate Email")
         }

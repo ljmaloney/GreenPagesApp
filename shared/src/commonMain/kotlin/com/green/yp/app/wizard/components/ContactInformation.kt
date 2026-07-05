@@ -1,5 +1,6 @@
 package com.green.yp.app.wizard.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,25 +8,29 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.ui.theme.DarkGreen
-import com.green.yp.app.wizard.ClassifiedWizardViewModel
+import com.green.yp.app.wizard.ClassifiedDraft
 
 @Composable
 fun ContactInformation(
-    modifier: Modifier = Modifier,
-    wizardViewModel: ClassifiedWizardViewModel? = null
+    draft: ClassifiedDraft,
+    onDraftChange: (ClassifiedDraft) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val firstName = wizardViewModel?.state?.collectAsState()?.value?.draft?.firstName ?: ""
-    val lastName = wizardViewModel?.state?.collectAsState()?.value?.draft?.lastName ?: ""
-    val email = wizardViewModel?.state?.collectAsState()?.value?.draft?.emailAddress ?: ""
-    val phoneNumber = wizardViewModel?.state?.collectAsState()?.value?.draft?.phoneNumber ?: ""
+    val firstName = draft.firstName
+    val lastName = draft.lastName
+    val email = draft.emailAddress
+    val phoneNumber = draft.phoneNumber
 
     Column(
-        modifier = modifier
+        modifier = Modifier
+            .background(Color.White)
+            .then(modifier)
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
@@ -38,80 +43,113 @@ fun ContactInformation(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // First Name - Required, Alphabetical, Starts with Uppercase
-        OutlinedTextField(
-            value = firstName,
-            onValueChange = { input ->
-                if (input.isEmpty() || input.all { it.isLetter() }) {
-                    wizardViewModel?.updateFirstName(input)
+        // First Name - Required
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "First Name*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = firstName,
+                onValueChange = { input ->
+                    if (input.isEmpty() || input.all { it.isLetter() }) {
+                        onDraftChange(draft.copy(firstName = input))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = {
+                    if (firstName.isNotEmpty() && !firstName[0].isUpperCase()) {
+                        Text("Must start with an uppercase letter", color = MaterialTheme.colorScheme.error)
+                    }
                 }
-            },
-            label = { Text("First Name*") },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true,
-            supportingText = {
-                if (firstName.isNotEmpty() && !firstName[0].isUpperCase()) {
-                    Text("Must start with an uppercase letter", color = MaterialTheme.colorScheme.error)
-                }
-            }
-        )
+            )
+        }
 
-        // Last Name - Required, Alphabetical, Starts with Uppercase, Hyphen or Space
-        OutlinedTextField(
-            value = lastName,
-            onValueChange = { input ->
-                if (input.isEmpty() || input.all { it.isLetter() || it == '-' || it == ' ' }) {
-                    wizardViewModel?.updateLastName(input)
+        // Last Name - Required
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Last Name*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = lastName,
+                onValueChange = { input ->
+                    if (input.isEmpty() || input.all { it.isLetter() || it == '-' || it == ' ' }) {
+                        onDraftChange(draft.copy(lastName = input))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = {
+                    if (lastName.isNotEmpty() && !lastName[0].isUpperCase()) {
+                        Text("Must start with an uppercase letter", color = MaterialTheme.colorScheme.error)
+                    }
                 }
-            },
-            label = { Text("Last Name*") },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true,
-            supportingText = {
-                if (lastName.isNotEmpty() && !lastName[0].isUpperCase()) {
-                    Text("Must start with an uppercase letter", color = MaterialTheme.colorScheme.error)
-                }
-            }
-        )
+            )
+        }
 
-        // Email Address - Required, Valid format
-        OutlinedTextField(
-            value = email,
-            onValueChange = { 
-                wizardViewModel?.updateEmailAddress(it)
-            },
-            label = { Text("Email Address*") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true,
-            supportingText = {
-                val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
-                if (email.isNotEmpty() && !email.matches(emailRegex)) {
-                    Text("Invalid email format", color = MaterialTheme.colorScheme.error)
+        // Email Address - Required
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Email Address*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = email,
+                onValueChange = { 
+                    onDraftChange(draft.copy(emailAddress = it))
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = {
+                    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+                    if (email.isNotEmpty() && !email.matches(emailRegex)) {
+                        Text("Invalid email format", color = MaterialTheme.colorScheme.error)
+                    }
                 }
-            }
-        )
+            )
+        }
 
-        // Phone Number - Required, Valid US format
-        OutlinedTextField(
-            value = phoneNumber,
-            onValueChange = { input ->
-                if (input.all { it.isDigit() || it == '-' || it == '(' || it == ')' || it == ' ' }) {
-                    wizardViewModel?.updatePhoneNumber(input)
+        // Phone Number - Required
+        Column(modifier = Modifier.padding(bottom = 16.dp)) {
+            Text(
+                text = "Phone Number*",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = phoneNumber,
+                onValueChange = { input ->
+                    // Allow digits and common phone formatting characters
+                    if (input.all { it.isDigit() || it == '-' || it == '(' || it == ')' || it == ' ' || it == '+' }) {
+                        val digitsOnly = input.filter { it.isDigit() }
+                        
+                        // Automatically format to US standard (XXX) XXX-XXXX when 10 digits are present
+                        val formatted = if (digitsOnly.length == 10 && !input.matches(Regex("""^\(\d{3}\) \d{3}-\d{4}$"""))) {
+                            "(${digitsOnly.substring(0, 3)}) ${digitsOnly.substring(3, 6)}-${digitsOnly.substring(6)}"
+                        } else {
+                            input
+                        }
+                        onDraftChange(draft.copy(phoneNumber = formatted))
+                    }
+                },
+                placeholder = { Text("(555) 555-5555") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = {
+                    val phoneRegex = "^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}$".toRegex()
+                    if (phoneNumber.isNotEmpty() && !phoneNumber.matches(phoneRegex)) {
+                        Text("Invalid US phone number format", color = MaterialTheme.colorScheme.error)
+                    }
                 }
-            },
-            label = { Text("Phone Number*") },
-            placeholder = { Text("(555) 555-5555") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            singleLine = true,
-            supportingText = {
-                val phoneRegex = "^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}$".toRegex()
-                if (phoneNumber.isNotEmpty() && !phoneNumber.matches(phoneRegex)) {
-                    Text("Invalid US phone number format", color = MaterialTheme.colorScheme.error)
-                }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -120,7 +158,7 @@ fun ContactInformation(
 fun ContactInformationPreview() {
     MaterialTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            ContactInformation()
+            ContactInformation(draft = ClassifiedDraft(), onDraftChange = {})
         }
     }
 }

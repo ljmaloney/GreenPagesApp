@@ -147,7 +147,6 @@ class ClassifiedWizardViewModel(
         }
 
         when (_state.value.currentStep) {
-
             ClassifiedWizardStep.CONTACT -> {
                 createClassifiedAd()
             }
@@ -180,7 +179,8 @@ class ClassifiedWizardViewModel(
             ClassifiedWizardStep.LOCATION ->
                 draft.address.isNotBlank() && draft.city.isNotBlank() && draft.state.isNotBlank()
             ClassifiedWizardStep.CONTACT ->
-                draft.firstName.isNotBlank() && draft.lastName.isNotBlank() && draft.emailAddress.isNotBlank()
+                draft.firstName.isNotBlank() && draft.lastName.isNotBlank()
+                        && draft.emailAddress.isNotBlank() && draft.phoneNumber.isNotBlank()
             else -> true
         }
     }
@@ -190,7 +190,7 @@ class ClassifiedWizardViewModel(
     // ------------------------
 
     private suspend fun createClassifiedAd() {
-
+        log.d("Creating classified ad - ${_state.value.draft}")
         updateState {
             copy(
                 loading = true,
@@ -199,7 +199,6 @@ class ClassifiedWizardViewModel(
         }
 
         try {
-
             val result =
                 repository.createClassifiedAd(
                     buildRequest()

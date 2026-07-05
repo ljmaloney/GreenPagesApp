@@ -1,5 +1,6 @@
 package com.green.yp.app.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,6 +12,7 @@ fun <T : Enum<T>> DropdownTextField(
     onValueChange: (T) -> Unit,
     label: String,
     entries: Array<T>,
+    modifier: Modifier = Modifier,
     displayName: (T) -> String = { it.name }
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -24,10 +26,11 @@ fun <T : Enum<T>> DropdownTextField(
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
     ) {
-        TextField(
-            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true),
+        OutlinedTextField(
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
             value = text,
             onValueChange = { newText ->
                 text = newText
@@ -35,11 +38,12 @@ fun <T : Enum<T>> DropdownTextField(
 
                 filtered.firstOrNull()?.let(onValueChange)
             },
-            label = { Text(label) },
+            label = if (label.isNotEmpty()) { { Text(label) } } else null,
             singleLine = true,
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded)
-            }
+            },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
         )
 
         ExposedDropdownMenu(

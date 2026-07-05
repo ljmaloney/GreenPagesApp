@@ -1,6 +1,7 @@
 package com.green.yp.app.wizard.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,7 +36,9 @@ fun ClassifiedAdTypeCard(
     onClick: () -> Unit = {}
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
+            .background(Color.White)
+            .then(modifier)
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 16.dp)
     ) {

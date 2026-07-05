@@ -43,6 +43,7 @@ fun ClassifiedAdTypeSelector(
     if (adTypes.isNotEmpty()) {
         ClassifiedAdTypeSelectorContent(
             adTypes = adTypes,
+            selectedId = null, // In a real scenario, this could be driven by the ViewModel if needed
             modifier = modifier,
             onAdTypeSelected = onAdTypeSelected
         )
@@ -56,6 +57,7 @@ fun ClassifiedAdTypeSelector(
 @Composable
 fun ClassifiedAdTypeSelectorContent(
     adTypes: List<ClassifiedAdType>,
+    selectedId: Uuid?,
     modifier: Modifier = Modifier,
     onAdTypeSelected: (ClassifiedAdType) -> Unit = {}
 ) {
@@ -69,21 +71,23 @@ fun ClassifiedAdTypeSelectorContent(
         pageCount = { adTypes.size }
     )
     
-    var selectedId by remember { 
-        mutableStateOf(adTypes.getOrNull(initialPage)?.adTypeId) 
-    }
+    // Use the provided selectedId if available, otherwise use initialPage
+    val currentSelectedId = selectedId ?: adTypes.getOrNull(initialPage)?.adTypeId
 
-    // Ensure onAdTypeSelected is called for the initial selection if it's the first time
-    LaunchedEffect(selectedId) {
-        if (selectedId != null) {
-            adTypes.find { it.adTypeId == selectedId }?.let {
+    // Ensure onAdTypeSelected is called for the initial selection if it's the first time and nothing is selected
+    LaunchedEffect(currentSelectedId) {
+        if (currentSelectedId != null) {
+            adTypes.find { it.adTypeId == currentSelectedId }?.let {
                 onAdTypeSelected(it)
             }
         }
     }
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier
+            .background(Color.White)
+            .then(modifier)
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         HorizontalPager(
@@ -95,10 +99,10 @@ fun ClassifiedAdTypeSelectorContent(
             val adType = adTypes[page]
             ClassifiedAdTypeCard(
                 adType = adType,
-                isSelected = adType.adTypeId == selectedId,
+                isSelected = adType.adTypeId == currentSelectedId,
                 modifier = Modifier.height(450.dp), // Fixed height for all cards
                 onClick = {
-                    selectedId = adType.adTypeId
+                    onAdTypeSelected(adType)
                 }
             )
         }
@@ -164,6 +168,9 @@ fun ClassifiedAdTypeSelectorPreview() {
     )
 
     MaterialTheme {
-        ClassifiedAdTypeSelectorContent(adTypes = sampleAdTypes)
+        ClassifiedAdTypeSelectorContent(
+            adTypes = sampleAdTypes,
+            selectedId = sampleAdTypes[1].adTypeId
+        )
     }
 }

@@ -19,13 +19,19 @@ fun App() {
                 LoadingScreen(onLoadingComplete = { state = AppStateType.READY })
 
             AppStateType.READY -> {
+                var targetTab by remember { mutableIntStateOf(0) }
                 if (showWizard) {
                     GreenPagesClassifiedWizard(
-                        onBackClick = { showWizard = false }
+                        onBackClick = { showWizard = false },
+                        onNavigateHome = { tab ->
+                            targetTab = tab
+                            showWizard = false
+                        }
                     )
                 } else {
                     GreenPagesMainScreen(
-                        onNavigateToWizard = { showWizard = true }
+                        onNavigateToWizard = { showWizard = true },
+                        initialTab = targetTab
                     )
                 }
             }

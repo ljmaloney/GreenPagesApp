@@ -34,7 +34,12 @@ fun WizardProgressIndicator(
     currentStep: Int,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(modifier.fillMaxWidth()) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .background(Color.White)
+            .then(modifier)
+            .fillMaxWidth()
+    ) {
 
         when {
             maxWidth >= 840.dp -> {

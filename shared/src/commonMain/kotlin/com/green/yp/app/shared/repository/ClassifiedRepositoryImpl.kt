@@ -1,5 +1,6 @@
 package com.green.yp.app.shared.repository
 
+import co.touchlab.kermit.Logger
 import com.green.yp.app.shared.api.ClassifiedApi
 import com.green.yp.app.shared.dto.classified.ClassifiedRequest
 import com.green.yp.app.shared.dto.classified.ClassifiedResponse
@@ -39,18 +40,21 @@ class ClassifiedRepositoryImpl(private val classifiedApi: ClassifiedApi) : Class
     private val _imageGallery = MutableStateFlow<List<ImageGallery>>(emptyList())
     override val imageGallery: StateFlow<List<ImageGallery>> = _imageGallery.asStateFlow()
 
+    private val log = Logger.withTag("green.yp.app.shared.di.repository.ClassifiedRepository")
+
     override suspend fun createClassifiedAd(request: ClassifiedRequest): Result<ClassifiedResponse> {
         _isLoading.value = true
         _errorMessage.value = null
-        
+        log.d("Creating classified ad - $request")
         return runCatching {
             val result = classifiedApi.createClassifiedAd(request)
             
             result.errorMessageApi?.let { error ->
                 _errorMessage.value = error.displayMessage
+                log.e("Error creating classified ad - $error")
                 throw IllegalStateException(error.displayMessage)
             }
-            
+            log.d("Classified ad created - ${result.response}")
             val response = result.response
             _createdAd.value = response
             _errorMessage.value = null

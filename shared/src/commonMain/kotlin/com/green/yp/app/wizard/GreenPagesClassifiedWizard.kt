@@ -37,10 +37,16 @@ fun GreenPagesClassifiedWizard(
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
     imagePicker: ImagePicker? = null, // This should be provided by koin or composition local in a real app
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    onNavigateHome: (initialTab: Int) -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val state by wizardViewModel.state.collectAsState()
+    
+    // Local state to hold the draft during the current step. 
+    // It resets to the committed draft whenever the step changes.
+    var workingDraft by remember(state.currentStep, state.draft) { mutableStateOf(state.draft) }
+
     val wizardSteps = remember(state.draft.adType) {
         val steps = mutableListOf(
             WizardStep("Package"),
@@ -65,16 +71,20 @@ fun GreenPagesClassifiedWizard(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
         topBar = {
             Column {
                 GreenPagesTopBar(
-                    onSearchClick = { /* Not used in wizard */ }
+                    onSearchClick = { onNavigateHome(1) },
+                    onLogoClick = { onNavigateHome(0) }
                 )
+                Spacer(modifier = Modifier.height(16.dp))
                 WizardProgressIndicator(
                     steps = wizardSteps,
                     currentStep = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
                         .takeIf { it >= 0 } ?: 0
                 )
+                Spacer(modifier = Modifier.height(16.dp))
             }
         },
         bottomBar = {
@@ -90,6 +100,8 @@ fun GreenPagesClassifiedWizard(
                         }
                     },
                     onNext = {
+                        // Commit the working draft to the ViewModel before moving to the next step
+                        wizardViewModel.updateDraft { workingDraft }
                         scope.launch {
                             wizardViewModel.nextStep()
                         }
@@ -109,25 +121,29 @@ fun GreenPagesClassifiedWizard(
                 ClassifiedWizardStep.PACKAGE -> {
                     ClassifiedAdSelector(
                         viewModel = classifiedReferenceViewModel,
+                        selectedAdType = workingDraft.adType,
                         onAdTypeSelected = { adType ->
-                            wizardViewModel.updateAdType(adType.adTypeId)
+                            workingDraft = workingDraft.copy(adType = adType.adTypeId)
                         }
                     )
                 }
                 ClassifiedWizardStep.DETAILS -> {
                     AdDetails(
                         viewModel = classifiedReferenceViewModel,
-                        wizardViewModel = wizardViewModel
+                        draft = workingDraft,
+                        onDraftChange = { workingDraft = it }
                     )
                 }
                 ClassifiedWizardStep.LOCATION -> {
                     AdLocation(
-                        wizardViewModel = wizardViewModel
+                        draft = workingDraft,
+                        onDraftChange = { workingDraft = it }
                     )
                 }
                 ClassifiedWizardStep.CONTACT -> {
                     ContactInformation(
-                        wizardViewModel = wizardViewModel
+                        draft = workingDraft,
+                        onDraftChange = { workingDraft = it }
                     )
                 }
                 ClassifiedWizardStep.EMAIL_VALIDATION -> {

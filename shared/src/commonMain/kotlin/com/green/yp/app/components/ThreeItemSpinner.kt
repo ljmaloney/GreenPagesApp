@@ -3,7 +3,6 @@ package com.green.yp.app.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,7 +24,7 @@ fun <T> ThreeItemSpinner(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.width(120.dp),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -51,7 +50,8 @@ fun <T> ThreeItemSpinner(
                     .clickable {
                         onSelected(selectedIndex - 1)
                     }
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 8.dp),
+                maxLines = 1
             )
         }
 
@@ -66,20 +66,22 @@ fun <T> ThreeItemSpinner(
                     vertical = 12.dp
                 ),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
             )
         }
 
         next?.let {
             Text(
-                text = itemLabel(it),
+                text = itemLabel(next),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = .50f),
                 modifier = Modifier
                     .clickable {
                         onSelected(selectedIndex + 1)
                     }
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 8.dp),
+                maxLines = 1
             )
         }
     }

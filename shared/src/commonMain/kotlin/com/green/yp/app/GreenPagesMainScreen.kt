@@ -6,13 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.green.yp.app.components.GreenPagesBottomBar
@@ -30,11 +24,12 @@ fun GreenPagesMainScreen(
     searchViewModel: SearchViewModel = koinViewModel(),
     classifiedReferenceViewModel: ClassifiedReferenceViewModel = koinViewModel(),
     referenceViewModel: ReferenceViewModel = koinViewModel(),
-    onNavigateToWizard: () -> Unit = {}
+    onNavigateToWizard: () -> Unit = {},
+    initialTab: Int = 0
 ) {
     val locationManager = remember { getLocationManager() }
     
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableStateOf(initialTab) }
     var searchParams by remember { mutableStateOf<SearchRequestParams?>(null) }
 
     // On start, if location is not available, go to SearchScreen

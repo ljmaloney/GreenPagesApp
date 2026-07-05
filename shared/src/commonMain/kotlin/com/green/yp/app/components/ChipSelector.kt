@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.ui.theme.DarkGold
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -54,8 +55,8 @@ fun ChipSelector(
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        containerColor = Color.Transparent,
-                        selectedContainerColor = DarkGreen,
+                        containerColor = Color.White,
+                        selectedContainerColor = DarkGold,
                         labelColor = DarkGreen,
                         selectedLabelColor = Color.White
                     ),
@@ -63,7 +64,7 @@ fun ChipSelector(
                         enabled = true,
                         selected = isSelected,
                         borderColor = DarkGreen,
-                        selectedBorderColor = DarkGreen,
+                        selectedBorderColor = DarkGold,
                         borderWidth = 1.dp,
                         selectedBorderWidth = 1.dp
                     )
