@@ -7,4 +7,5 @@ interface EmailContactRepository {
     val isLoading: StateFlow<Boolean>
     
     suspend fun validateEmail(externRef: String, emailAddress: String, token: String): Result<Unit>
+    fun clearError()
 }

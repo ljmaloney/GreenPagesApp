@@ -46,8 +46,8 @@ class EmailContactRepositoryImpl(private val emailContactApi: EmailContactApi) :
             Unit
         }.onFailure { throwable ->
             val message = when (throwable) {
-                is ClientRequestException -> "Client error: ${throwable.response.status.value}"
-                is ServerResponseException -> "Server error: ${throwable.response.status.value}"
+                is ClientRequestException -> "Unable to validate email address using the token provided"
+                is ServerResponseException -> "Unexpected system error. Please try again later"
                 is ResponseException -> "Network error: ${throwable.response.status.value}"
                 else -> throwable.message ?: "Unknown error"
             }
@@ -56,5 +56,9 @@ class EmailContactRepositoryImpl(private val emailContactApi: EmailContactApi) :
         }.also {
             _isLoading.value = false
         }
+    }
+
+    override fun clearError() {
+        _errorMessage.value = null
     }
 }

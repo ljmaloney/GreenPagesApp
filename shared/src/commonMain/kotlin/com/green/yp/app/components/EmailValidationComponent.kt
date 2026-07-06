@@ -121,27 +121,46 @@ fun EmailValidationComponent(
             }
         }
 
-        // Validate Button
-        Button(
-            onClick = { 
-                onValidate(code)
-            },
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .height(44.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = DarkGreen
-            ),
-            enabled = code.length == 8 && !isLoading
+        // Action Buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text("Validate Email")
+            Button(
+                onClick = {
+                    code = ""
+                    focusRequesters[0].requestFocus()
+                },
+                modifier = Modifier.height(44.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DarkGreen,
+                    contentColor = Color.White
+                ),
+                enabled = code.isNotEmpty() && !isLoading
+            ) {
+                Text("Clear")
+            }
+
+            Button(
+                onClick = {
+                    onValidate(code)
+                },
+                modifier = Modifier.height(44.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DarkGreen
+                ),
+                enabled = code.length == 8 && !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Validate Email")
+                }
             }
         }
     }

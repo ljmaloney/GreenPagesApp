@@ -28,4 +28,8 @@ class EmailContactViewModel(
     fun resetValidationState() {
         _isValidated.value = false
     }
+
+    fun clearError() {
+        repository.clearError()
+    }
 }

@@ -1,5 +1,6 @@
 package com.green.yp.app.wizard
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.green.yp.app.components.AlertBanner
+import com.green.yp.app.components.AlertBannerItem
+import com.green.yp.app.components.AlertType
 import com.green.yp.app.components.EmailValidationComponent
 import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.components.WizardProgressIndicator
@@ -207,7 +211,21 @@ fun GreenPagesClassifiedWizard(
                     }
 
                     ClassifiedWizardStep.EMAIL_VALIDATION -> {
-                        Column {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            emailError?.let { error ->
+                                AlertBanner(
+                                    alerts = listOf(
+                                        AlertBannerItem(
+                                            id = "email-validation-error",
+                                            title = "Validation Error",
+                                            message = error,
+                                            type = AlertType.ERROR
+                                        )
+                                    ),
+                                    onDismiss = { emailContactViewModel.clearError() }
+                                )
+                            }
+
                             EmailValidationComponent(
                                 isLoading = emailLoading,
                                 onValidate = { code ->
@@ -220,14 +238,6 @@ fun GreenPagesClassifiedWizard(
                                     )
                                 }
                             )
-                            
-                            emailError?.let { error ->
-                                Text(
-                                    text = error,
-                                    color = Color.Red,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
-                            }
                         }
                     }
 
