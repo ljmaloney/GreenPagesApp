@@ -34,6 +34,7 @@ import com.green.yp.app.components.WizardStep
 import com.green.yp.app.media.ImagePicker
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.EmailContactViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
 import com.green.yp.app.ui.theme.DarkGreen
@@ -55,6 +56,7 @@ fun GreenPagesClassifiedWizard(
     classifiedReferenceViewModel: ClassifiedReferenceViewModel = koinViewModel(),
     referenceViewModel: ReferenceViewModel = koinViewModel(),
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
+    emailContactViewModel: EmailContactViewModel = koinViewModel(),
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
     imagePicker: ImagePicker? = null, // This should be provided by koin or composition local in a real app
     onBackClick: () -> Unit = {},
@@ -62,6 +64,10 @@ fun GreenPagesClassifiedWizard(
 ) {
     val scope = rememberCoroutineScope()
     val state by wizardViewModel.state.collectAsState()
+    val emailLoading by emailContactViewModel.isLoading.collectAsState()
+    val emailError by emailContactViewModel.errorMessage.collectAsState()
+    val emailValidated by emailContactViewModel.isValidated.collectAsState()
+    
     val scrollState = rememberScrollState()
     
     // Local state to hold the draft during the current step. 
@@ -127,7 +133,7 @@ fun GreenPagesClassifiedWizard(
                         },
                         onNext = {
                         // If we are on Email Validation step, only allow Next if email is validated
-                        if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !state.emailValidated) {
+                        if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !emailValidated) {
                              return@ClassifiedWizardBottomBar
                         }
 
@@ -155,7 +161,9 @@ fun GreenPagesClassifiedWizard(
                         onPreview = { },
                         currentStep = currentStepIndex,
                         totalSteps = wizardSteps.size,
-                        isLoading = state.loading || (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !state.emailValidated),
+                        isLoading = state.loading || emailLoading,
+                        isNextEnabled = if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION) emailValidated else true,
+                        isBackEnabled = true,
                         viewModel = wizardViewModel
                     )
                 }
@@ -199,14 +207,28 @@ fun GreenPagesClassifiedWizard(
                     }
 
                     ClassifiedWizardStep.EMAIL_VALIDATION -> {
-                        EmailValidationComponent(
-                            isLoading = state.loading,
-                            onValidate = { code ->
-                                scope.launch {
-                                    wizardViewModel.validateEmail(code)
+                        Column {
+                            EmailValidationComponent(
+                                isLoading = emailLoading,
+                                onValidate = { code ->
+                                    val listingId = state.listingId?.toString() ?: ""
+                                    val email = state.draft.emailAddress
+                                    emailContactViewModel.validateEmail(
+                                        externRef = listingId,
+                                        emailAddress = email,
+                                        token = code
+                                    )
                                 }
+                            )
+                            
+                            emailError?.let { error ->
+                                Text(
+                                    text = error,
+                                    color = Color.Red,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
                             }
-                        )
+                        }
                     }
 
                     ClassifiedWizardStep.IMAGES -> {

@@ -29,6 +29,8 @@ fun ClassifiedWizardBottomBar(
     totalSteps: Int,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
+    isNextEnabled: Boolean = true,
+    isBackEnabled: Boolean = true,
     viewModel: ClassifiedWizardViewModel? = null
 ) {
     Surface(
@@ -47,7 +49,7 @@ fun ClassifiedWizardBottomBar(
             if (currentStep > 0) {
                 OutlinedButton(
                     onClick = onBack,
-                    enabled = !isLoading,
+                    enabled = !isLoading && isBackEnabled,
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkGreen),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                         brush = SolidColor(DarkGreen)
@@ -61,7 +63,7 @@ fun ClassifiedWizardBottomBar(
             if (currentStep < totalSteps - 1) {
                 Button(
                     onClick = onNext,
-                    enabled = !isLoading,
+                    enabled = !isLoading && isNextEnabled,
                     colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
                 ) {
                     if (isLoading) {
@@ -77,7 +79,7 @@ fun ClassifiedWizardBottomBar(
             } else {
                 Button(
                     onClick = onPreview,
-                    enabled = !isLoading,
+                    enabled = !isLoading && isNextEnabled,
                     colors = ButtonDefaults.buttonColors(containerColor = DarkGold)
                 ) {
                     Text("Preview Ad")
