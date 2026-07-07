@@ -28,19 +28,13 @@ class EmailContactRepositoryImpl(private val emailContactApi: EmailContactApi) :
         log.d("Validating email address - $normalizedEmail")
 
         return runCatching {
-            val result = emailContactApi.validateEmail(
+            emailContactApi.validateEmail(
                 EmailValidationRequest(
                     externRef = externRef,
                     emailAddress = normalizedEmail,
                     token = token
                 )
             )
-            
-            result.errorMessageApi?.let { error ->
-                _errorMessage.value = error.displayMessage
-                log.e("Error validating email - $error")
-                throw IllegalStateException(error.displayMessage)
-            }
             
             _errorMessage.value = null
             Unit
