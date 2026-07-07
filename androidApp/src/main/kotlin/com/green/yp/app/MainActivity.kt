@@ -6,6 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import com.green.yp.app.media.AndroidImagePicker
+import com.green.yp.app.media.LocalImagePicker
 import com.green.yp.app.shared.di.KoinInitializer
 
 class MainActivity : ComponentActivity() {
@@ -15,7 +19,10 @@ class MainActivity : ComponentActivity() {
 
         KoinInitializer.init()
         setContent {
-            App()
+            val imagePicker = remember { AndroidImagePicker(this) }
+            CompositionLocalProvider(LocalImagePicker provides imagePicker) {
+                App()
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +37,7 @@ import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.components.WizardProgressIndicator
 import com.green.yp.app.components.WizardStep
 import com.green.yp.app.media.ImagePicker
+import com.green.yp.app.media.LocalImagePicker
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.EmailContactViewModel
@@ -71,6 +73,8 @@ fun GreenPagesClassifiedWizard(
     val emailLoading by emailContactViewModel.isLoading.collectAsState()
     val emailError by emailContactViewModel.errorMessage.collectAsState()
     val emailValidated by emailContactViewModel.isValidated.collectAsState()
+    
+    val providedImagePicker = imagePicker ?: LocalImagePicker.current
     
     val scrollState = rememberScrollState()
     
@@ -211,6 +215,15 @@ fun GreenPagesClassifiedWizard(
                     }
 
                     ClassifiedWizardStep.EMAIL_VALIDATION -> {
+                        var showSuccessMessage by remember(emailValidated) { mutableStateOf(emailValidated) }
+                        
+                        // Reset validation state when entering this step for the first time
+                        LaunchedEffect(Unit) {
+                            if (!emailValidated) {
+                                emailContactViewModel.resetValidationState()
+                            }
+                        }
+
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             emailError?.let { error ->
                                 AlertBanner(
@@ -223,6 +236,20 @@ fun GreenPagesClassifiedWizard(
                                         )
                                     ),
                                     onDismiss = { emailContactViewModel.clearError() }
+                                )
+                            }
+
+                            if (showSuccessMessage) {
+                                AlertBanner(
+                                    alerts = listOf(
+                                        AlertBannerItem(
+                                            id = "email-validation-success",
+                                            title = "Email Verified",
+                                            message = "Thanks for taking the time to verify your email address",
+                                            type = AlertType.INFO
+                                        )
+                                    ),
+                                    onDismiss = { showSuccessMessage = false }
                                 )
                             }
 
@@ -243,7 +270,7 @@ fun GreenPagesClassifiedWizard(
 
                     ClassifiedWizardStep.IMAGES -> {
                         state.listingId?.let { listingId ->
-                            imagePicker?.let { picker ->
+                            providedImagePicker?.let { picker ->
                                 UploadImages(
                                     classifiedId = listingId,
                                     maxImages = state.draft.adType?.let { adTypeId ->
@@ -254,10 +281,13 @@ fun GreenPagesClassifiedWizard(
                                     imagePicker = picker
                                 )
                             } ?: Text(
-                                "Please complete earlier steps first",
+                                "Image selection is not available on this platform",
                                 modifier = Modifier.padding(16.dp)
                             )
-                        }
+                        } ?: Text(
+                            "Please complete earlier steps first",
+                            modifier = Modifier.padding(16.dp)
+                        )
                     }
 
                     ClassifiedWizardStep.PREVIEW -> {

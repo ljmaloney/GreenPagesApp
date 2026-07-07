@@ -1,10 +1,10 @@
 package com.green.yp.app.media
 
-interface IOSPickerBridge {
+interface IOSPickerDelegate {
     fun pickImage(callback: (ByteArray, String) -> Unit)
 }
 
-class IOSImagePicker(private val bridge: IOSPickerBridge) : ImagePicker {
+class IOSImagePicker(private val bridge: IOSPickerDelegate) : ImagePicker {
 
     private var callback: ((ImageResult) -> Unit)? = null
 
