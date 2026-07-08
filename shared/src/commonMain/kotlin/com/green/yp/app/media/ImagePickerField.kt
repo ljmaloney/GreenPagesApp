@@ -24,7 +24,9 @@ fun ImagePickerField(
 
         Button(
             onClick = {
+                println("DEBUG: Select Image button clicked")
                 picker.pickImage { result ->
+                    println("DEBUG: Image picked: ${result.fileName}")
                     selected = result
                     onSelected(result)
                 }

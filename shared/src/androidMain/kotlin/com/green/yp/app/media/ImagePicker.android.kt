@@ -3,7 +3,9 @@ package com.green.yp.app.media
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 
 class AndroidImagePicker(
@@ -14,16 +16,22 @@ class AndroidImagePicker(
 
     private val launcher =
         activity.registerForActivityResult(
-            ActivityResultContracts.GetContent()
+            ActivityResultContracts.PickVisualMedia()
         ) { uri: Uri? ->
+            Log.d("AndroidImagePicker", "Picker result received: $uri")
             uri?.let {
-                callback?.invoke(it.toImageResult(activity.contentResolver))
+                try {
+                    callback?.invoke(it.toImageResult(activity.contentResolver))
+                } catch (e: Exception) {
+                    Log.e("AndroidImagePicker", "Error processing image", e)
+                }
             }
         }
 
     override fun pickImage(onResult: (ImageResult) -> Unit) {
+        Log.d("AndroidImagePicker", "pickImage called")
         callback = onResult
-        launcher.launch("image/*")
+        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
     private fun Uri.toImageResult(contentResolver: ContentResolver): ImageResult {

@@ -13,17 +13,8 @@ import com.green.yp.app.media.LocalImagePicker
 
 import com.green.yp.app.shared.di.KoinInitializer
 
-fun MainViewController() = ComposeUIViewController {
-    val imagePicker = remember { 
-        IOSImagePicker(object : IOSPickerDelegate {
-            override fun pickImage(callback: (ByteArray, String) -> Unit) {
-                // To connect with the Swift IOSPickerBridge:
-                // 1. You can call the Swift bridge from here if it's exported
-                // 2. Or let the Swift side provide this implementation
-                // For now, we'll keep this as a placeholder or use the Swift bridge if available
-            }
-        })
-    }
+fun MainViewController(pickerDelegate: IOSPickerDelegate) = ComposeUIViewController {
+    val imagePicker = remember { IOSImagePicker(pickerDelegate) }
     CompositionLocalProvider(LocalImagePicker provides imagePicker) {
         RootContent() 
     }

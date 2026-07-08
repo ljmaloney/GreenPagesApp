@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.shared.dto.classified.ClassifiedImageUpload
@@ -80,7 +81,12 @@ fun ClassifiedImageUploadComponentContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text("Upload Image", style = MaterialTheme.typography.headlineSmall)
+        Text(
+            text = "Upload Image",
+            style = MaterialTheme.typography.titleMedium,
+            color = DarkGreen,
+            fontWeight = FontWeight.Bold
+        )
 
         ImagePickerField(
             picker = imagePicker,
