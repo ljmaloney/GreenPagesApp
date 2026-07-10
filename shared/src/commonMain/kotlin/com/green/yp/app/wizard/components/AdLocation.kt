@@ -13,6 +13,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -22,22 +23,35 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.green.yp.app.components.DropdownTextField
+import com.green.yp.app.components.DropdownComponent
+import com.green.yp.app.components.DropdownItem
 import com.green.yp.app.enum.StateEnum
 import com.green.yp.app.ui.theme.DarkGreen
 import com.green.yp.app.wizard.ClassifiedDraft
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun AdLocation(
     draft: ClassifiedDraft,
     onDraftChange: (ClassifiedDraft) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val address = draft.address
     val city = draft.city
     val state = draft.state
     val zipCode = draft.postalCode
-    val selectedState = if (state.isNotEmpty()) StateEnum.valueOf(state) else null
+
+    val stateOptions = remember {
+        StateEnum.entries.map {
+            DropdownItem(
+                uuid = Uuid.random(),
+                stringId = it.abbreviation,
+                description = it.stateName
+            )
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -111,15 +125,14 @@ fun AdLocation(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            DropdownTextField(
-                value = selectedState,
-                onValueChange = { 
-                    onDraftChange(draft.copy(state = it.name))
+            DropdownComponent(
+                options = stateOptions,
+                selectedOption = stateOptions.find { it.stringId == state },
+                onOptionSelected = { item ->
+                    onDraftChange(draft.copy(state = item.stringId))
                 },
-                label = "",
-                entries = StateEnum.entries.toTypedArray(),
                 modifier = Modifier.fillMaxWidth(),
-                displayName = { it.displayName }
+                label = ""
             )
         }
 

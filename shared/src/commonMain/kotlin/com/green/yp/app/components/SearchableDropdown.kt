@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T : Enum<T>> DropdownTextField(
+fun <T : Enum<T>> SearchableDropdown(
     value: T?,
     onValueChange: (T) -> Unit,
     label: String,
