@@ -6,6 +6,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -76,7 +79,7 @@ fun EmailValidationComponent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(8) { index ->
@@ -84,38 +87,60 @@ fun EmailValidationComponent(
                 OTPInputField(
                     value = char,
                     onValueChange = { newValue ->
-                        val filtered = newValue.filter { it.isLetterOrDigit() }
-                        if (filtered.isNotEmpty()) {
-                            val newChar = filtered.take(1)
-                            val newCode = if (index < code.length) {
-                                code.replaceRange(index, index + 1, newChar)
-                            } else if (index == code.length) {
-                                code + newChar
-                            } else {
-                                code
+                        if (newValue.length > 1) {
+                            // Handle Paste
+                            val filtered = newValue.filter { it.isLetterOrDigit() }
+                            if (filtered.isNotEmpty()) {
+                                var newCode = code.padEnd(8, ' ')
+                                for (i in filtered.indices) {
+                                    if (index + i < 8) {
+                                        newCode = newCode.replaceRange(index + i, index + i + 1, filtered[i].toString())
+                                    }
+                                }
+                                code = newCode.substring(0, 8).trimEnd()
+                                
+                                val nextFocusIndex = (index + filtered.length).coerceAtMost(7)
+                                if (code.length >= 8) focusManager.clearFocus()
+                                else focusRequesters[nextFocusIndex].requestFocus()
                             }
-                            
-                            if (newCode.length <= 8) {
-                                code = newCode
-                                // Auto-move to next field
-                                if (index < 7) {
-                                    focusRequesters[index + 1].requestFocus()
+                        } else if (newValue.isNotEmpty()) {
+                            // Handle Single Character
+                            val filtered = newValue.filter { it.isLetterOrDigit() }
+                            if (filtered.isNotEmpty()) {
+                                val newCode = if (index < code.length) {
+                                    code.replaceRange(index, index + 1, filtered.take(1))
+                                } else if (index == code.length) {
+                                    code + filtered.take(1)
                                 } else {
-                                    focusManager.clearFocus()
+                                    code
+                                }
+                                
+                                if (newCode.length <= 8) {
+                                    code = newCode
+                                    if (index < 7) {
+                                        focusRequesters[index + 1].requestFocus()
+                                    } else {
+                                        focusManager.clearFocus()
+                                    }
                                 }
                             }
                         } else if (index < code.length) {
-                            // Handle backspace/empty
+                            // Handle backspace when current field was not empty
                             code = code.removeRange(index, index + 1)
-                            // Auto-move to previous field on backspace if current is empty
                             if (index > 0) {
                                 focusRequesters[index - 1].requestFocus()
                             }
                         }
                     },
+                    onBackspace = {
+                        // Handle backspace when current field is already empty
+                        if (index > 0) {
+                            focusRequesters[index - 1].requestFocus()
+                        }
+                    },
                     modifier = Modifier
-                        .width(40.dp)
-                        .height(48.dp)
+                        .requiredWidth(36.dp)
+                        .requiredHeight(48.dp)
                         .focusRequester(focusRequesters[index])
                 )
             }
@@ -170,6 +195,7 @@ fun EmailValidationComponent(
 private fun OTPInputField(
     value: String,
     onValueChange: (String) -> Unit,
+    onBackspace: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -179,7 +205,15 @@ private fun OTPInputField(
         onValueChange = onValueChange,
         modifier = modifier
             .background(Color.White, shape = MaterialTheme.shapes.small)
-            .border(1.dp, DarkGreen, shape = MaterialTheme.shapes.small),
+            .border(1.dp, DarkGreen, shape = MaterialTheme.shapes.small)
+            .onKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown && event.key == Key.Backspace && value.isEmpty()) {
+                    onBackspace()
+                    true
+                } else {
+                    false
+                }
+            },
         singleLine = true,
         textStyle = MaterialTheme.typography.headlineSmall.copy(
             textAlign = TextAlign.Center,
