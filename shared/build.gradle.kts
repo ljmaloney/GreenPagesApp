@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.codingfeline.buildkonfig.compiler.FieldSpec
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -8,7 +9,20 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktorfit)
+    alias(libs.plugins.buildKonfig)
 }
+
+buildkonfig {
+    packageName = "com.green.yp.app.config"
+    val serviceUrl = project.findProperty("GREENYP_SERVICE_URL")?.toString() ?: "https://services.greenyp.com/"
+    val squareId = project.findProperty("SQUARE_APP_ID")?.toString() ?: "sandbox-sq0idb-M2aZ-sHnLqx0tFnGEbgTbw"
+
+    defaultConfigs {
+        buildConfigField(FieldSpec.Type.STRING, "GREENYP_SERVICE_URL", serviceUrl)
+        buildConfigField(FieldSpec.Type.STRING, "SQUARE_APP_ID", squareId)
+    }
+}
+
 
 kotlin {
 
