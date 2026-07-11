@@ -128,6 +128,12 @@ class ClassifiedWizardViewModel(
         }
     }
 
+    fun clearError() {
+        updateState {
+            copy(error = null)
+        }
+    }
+
     // ------------------------
     // Navigation
     // ------------------------
@@ -270,11 +276,10 @@ class ClassifiedWizardViewModel(
         val draft = _state.value.draft
 
         return ClassifiedRequest(
-            adType = requireNotNull(draft.adType),
-            categoryId = requireNotNull(draft.categoryId),
-            price = requireNotNull(draft.price),
-            pricePerUnitType =
-                requireNotNull(draft.pricePerUnitType),
+            adType = requireNotNull(draft.adType) { "Ad type is missing" },
+            categoryId = requireNotNull(draft.categoryId) { "Category is missing" },
+            price = draft.price ?: 0.0,
+            pricePerUnitType = draft.pricePerUnitType ?: "",
 
             firstName = draft.firstName,
             lastName = draft.lastName,

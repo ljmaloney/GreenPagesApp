@@ -49,6 +49,7 @@ fun ClassifiedImageUploadComponent(
         errorMessage = errorMessage,
         imagePicker = imagePicker,
         onUpload = { image, fileName, description ->
+            println("DEBUG: onUpload triggered in UI")
             viewModel.uploadImage(
                 ClassifiedImageUpload(
                     classifiedId = classifiedId,

@@ -51,7 +51,9 @@ class ClassifiedViewModel(private val repository: ClassifiedRepository) : ViewMo
 
     fun uploadImage(request: ClassifiedImageUpload) {
         viewModelScope.launch {
-            repository.uploadImage(request)
+            repository.uploadImage(request).onSuccess {
+                repository.getClassifiedImageGallery(request.classifiedId)
+            }
         }
     }
 

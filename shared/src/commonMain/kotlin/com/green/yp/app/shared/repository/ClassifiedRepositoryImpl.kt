@@ -12,9 +12,10 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.client.request.forms.formData
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.content.PartData
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -115,27 +116,24 @@ class ClassifiedRepositoryImpl(private val classifiedApi: ClassifiedApi) : Class
     ): Result<Unit> {
         _isLoading.value = true
         _errorMessage.value = null
+        log.d("Uploading image: ${request.fileName}")
 
         return runCatching {
-            val formData = formData {
-                append(
-                    key = "file",
-                    value = request.bytes,
-                    headers = Headers.build {
-                        append(HttpHeaders.ContentType, request.contentType)
-                        append(
-                            HttpHeaders.ContentDisposition,
-                            "filename=${request.fileName}"
-                        )
-                    }
-                )
-            }
-
-            val body = MultiPartFormDataContent(formData)
+            val filePart = PartData.FileItem(
+                provider = { ByteReadChannel(request.bytes) },
+                dispose = {},
+                partHeaders = Headers.build {
+                    append(HttpHeaders.ContentType, request.contentType)
+                    append(
+                        HttpHeaders.ContentDisposition,
+                        "form-data; name=\"file\"; filename=\"${request.fileName}\""
+                    )
+                }
+            )
 
             val result = classifiedApi.uploadImage(
                 classifiedId = request.classifiedId,
-                file = body,
+                body = MultiPartFormDataContent(listOf(filePart)),
                 imageFilename = request.fileName,
                 imageDescription = request.description
             )

@@ -41,12 +41,14 @@ object HttpClientFactory {
             }
 
             install(HttpTimeout) {
-                requestTimeoutMillis = 15000
+                requestTimeoutMillis = 60000
+                connectTimeoutMillis = 60000
+                socketTimeoutMillis = 60000
             }
 
 
             install(Logging) {
-                level = LogLevel.ALL
+                level = LogLevel.INFO
             }
 
             // Centralized HTTP response validation: map 4xx -> ClientRequestException, 5xx -> ServerResponseException

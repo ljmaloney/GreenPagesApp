@@ -8,12 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,8 +26,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import co.touchlab.kermit.Logger
 import com.green.yp.app.components.AlertBanner
 import com.green.yp.app.components.AlertBannerItem
 import com.green.yp.app.components.AlertType
@@ -68,6 +69,7 @@ fun GreenPagesClassifiedWizard(
     onBackClick: () -> Unit = {},
     onNavigateHome: (initialTab: Int) -> Unit = {}
 ) {
+    val log = Logger.withTag("green.yp.app.wizard.GreenPagesClassifiedWizard")
     val scope = rememberCoroutineScope()
     val state by wizardViewModel.state.collectAsState()
     val emailLoading by emailContactViewModel.isLoading.collectAsState()
@@ -140,6 +142,7 @@ fun GreenPagesClassifiedWizard(
                             }
                         },
                         onNext = {
+                            log.d("onNext called")
                         // If we are on Email Validation step, only allow Next if email is validated
                         if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !emailValidated) {
                              return@ClassifiedWizardBottomBar
@@ -163,6 +166,7 @@ fun GreenPagesClassifiedWizard(
                             // Commit the trimmed draft to the ViewModel before moving to the next step
                             wizardViewModel.updateDraft { trimmedDraft }
                             scope.launch {
+                                log.d("onNext launch called")
                                 wizardViewModel.nextStep()
                             }
                         },
@@ -301,14 +305,30 @@ fun GreenPagesClassifiedWizard(
                                 } ?: Text("Ad data not found", modifier = Modifier.padding(16.dp))
                             }
 
-                            Button(
-                                onClick = { /* TODO: Implement Place Ad logic */ },
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(16.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text("Place Ad", color = Color.White)
+                                Button(
+                                    onClick = { /* TODO: Implement Place Ad logic */ },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
+                                ) {
+                                    Text("Place Ad", color = Color.White)
+                                }
+
+                                OutlinedButton(
+                                    onClick = { wizardViewModel.previousStep() },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkGreen),
+                                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                                        brush = SolidColor(DarkGreen)
+                                    )
+                                ) {
+                                    Text("<< Back")
+                                }
                             }
                         }
                     }
