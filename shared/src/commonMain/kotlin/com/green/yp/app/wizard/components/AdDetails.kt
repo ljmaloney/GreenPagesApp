@@ -30,7 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.components.ChipItem
 import com.green.yp.app.components.ChipSelector
-import com.green.yp.app.components.ThreeItemSpinner
+import com.green.yp.app.components.DropdownComponent
+import com.green.yp.app.components.DropdownItem
 import com.green.yp.app.enum.PricePerEnum
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
@@ -62,11 +63,16 @@ fun AdDetails(
     val chipItems = remember(categories) {
         categories.map { ChipItem(it.categoryId, it.name) }
     }
-    
-    val selectedPricePerIndex = if (!draft.pricePerUnitType.isNullOrBlank()) {
-        PricePerEnum.entries.indexOfFirst { it.displayName == draft.pricePerUnitType }
-            .takeIf { it >= 0 } ?: 0
-    } else 0
+
+    val pricePerOptions = remember {
+        PricePerEnum.entries.map {
+            DropdownItem(
+                uuid = Uuid.random(),
+                stringId = it.name,
+                description = it.displayName
+            )
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -124,17 +130,15 @@ fun AdDetails(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                ThreeItemSpinner(
-                    items = PricePerEnum.entries,
-                    selectedIndex = selectedPricePerIndex,
-                    itemLabel = { it.displayName },
-                    onSelected = { 
-                        onDraftChange(draft.copy(pricePerUnitType = PricePerEnum.entries[it].displayName))
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)
-                )
-            }
+            DropdownComponent(
+                options = pricePerOptions,
+                selectedOption = pricePerOptions.find { it.description == draft.pricePerUnitType },
+                onOptionSelected = { item ->
+                    onDraftChange(draft.copy(pricePerUnitType = item.description))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = ""
+            )
         }
 
         Column(modifier = Modifier.padding(bottom = 16.dp)) {
