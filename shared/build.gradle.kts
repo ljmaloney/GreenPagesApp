@@ -15,11 +15,13 @@ plugins {
 buildkonfig {
     packageName = "com.green.yp.app.config"
     val serviceUrl = project.findProperty("GREENYP_SERVICE_URL")?.toString() ?: "https://services.greenyp.com/"
-    val squareId = project.findProperty("SQUARE_APP_ID")?.toString() ?: "sandbox-sq0idb-M2aZ-sHnLqx0tFnGEbgTbw"
+    val squareId = project.findProperty("SQUARE_APPLICATION_ID")?.toString() ?: "sandbox-sq0idb-M2aZ-sHnLqx0tFnGEbgTbw"
+    val locationId = project.findProperty("SQUARE_LOCATION_ID")?.toString() ?: "LG1AG21E6AZ4T"
 
     defaultConfigs {
         buildConfigField(FieldSpec.Type.STRING, "GREENYP_SERVICE_URL", serviceUrl)
-        buildConfigField(FieldSpec.Type.STRING, "SQUARE_APP_ID", squareId)
+        buildConfigField(FieldSpec.Type.STRING, "SQUARE_APPLICATION_ID", squareId)
+        buildConfigField(FieldSpec.Type.STRING, "SQUARE_LOCATION_ID", locationId)
     }
 }
 
