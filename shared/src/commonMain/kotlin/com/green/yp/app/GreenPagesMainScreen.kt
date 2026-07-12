@@ -2,12 +2,14 @@ package com.green.yp.app
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,7 +21,7 @@ import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.screens.ExploreMarketResultsFragment
 import com.green.yp.app.screens.SearchScreen
 import com.green.yp.app.shared.dto.search.SearchRequestParams
-import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -27,12 +29,14 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun GreenPagesMainScreen(
     searchViewModel: SearchViewModel = koinViewModel(),
-    classifiedViewModel: ClassifiedViewModel = koinViewModel(),
-    referenceViewModel: ReferenceViewModel = koinViewModel()
+    classifiedReferenceViewModel: ClassifiedReferenceViewModel = koinViewModel(),
+    referenceViewModel: ReferenceViewModel = koinViewModel(),
+    onNavigateToWizard: () -> Unit = {},
+    initialTab: Int = 0
 ) {
     val locationManager = remember { getLocationManager() }
     
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableStateOf(initialTab) }
     var searchParams by remember { mutableStateOf<SearchRequestParams?>(null) }
 
     // On start, if location is not available, go to SearchScreen
@@ -42,12 +46,22 @@ fun GreenPagesMainScreen(
         }
     }
 
+    val searchResults by searchViewModel.searchResults.collectAsState()
+    val isRefreshing by searchViewModel.isRefreshing.collectAsState()
+
+    var pendingSearch by remember { mutableStateOf<SearchRequestParams?>(null) }
+    var showNoResults by remember { mutableStateOf(false) }
+
     MaterialTheme {
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().imePadding(),
             topBar = {
                 GreenPagesTopBar(
-                    onSearchClick = { selectedTab = 1 }
+                    onSearchClick = { selectedTab = 1 },
+                    onLogoClick = { 
+                        selectedTab = 0 
+                        searchParams = null
+                    }
                 )
             },
             bottomBar = {
@@ -59,7 +73,8 @@ fun GreenPagesMainScreen(
                             // Reset search params when clicking Home to use default location search
                             searchParams = null
                         }
-                    }
+                    },
+                    onCreateClick = { onNavigateToWizard() }
                 )
             }
         ) { paddingValues ->
@@ -73,12 +88,25 @@ fun GreenPagesMainScreen(
                     }
                 )
                 1 -> SearchScreen(
-                    classifiedView = classifiedViewModel,
+                    classifiedView = classifiedReferenceViewModel,
                     referenceViewModel = referenceViewModel,
                     paddingValues = paddingValues,
+                    initialParams = searchParams,
+                    initialShowNoResults = showNoResults,
                     onSearch = { params ->
+                        // Start the search and wait for results. If no results, return to SearchScreen and show banner.
                         searchParams = params
-                        selectedTab = 0
+                        pendingSearch = params
+                        showNoResults = false
+                        // Trigger search in ViewModel
+                        searchViewModel.search(
+                            zipCode = params.zipCode,
+                            latitude = params.latitude,
+                            longitude = params.longitude,
+                            keywords = params.keywords,
+                            categoryRefId = params.categoryRefId,
+                            distance = params.distance
+                        )
                     },
                     onAppear = {
                         locationManager.startLocationUpdates()
@@ -89,6 +117,19 @@ fun GreenPagesMainScreen(
                     Column(modifier = Modifier.padding(paddingValues)) {
                         Text("Tab $selectedTab Content")
                     }
+                }
+            }
+
+            // Watch for completion of a pending search and navigate/show banner appropriately
+            LaunchedEffect(pendingSearch, isRefreshing) {
+                if (pendingSearch != null && !isRefreshing) {
+                    if (searchResults.isEmpty()) {
+                        showNoResults = true
+                        selectedTab = 1
+                    } else {
+                        selectedTab = 0
+                    }
+                    pendingSearch = null
                 }
             }
         }
@@ -107,10 +148,12 @@ fun GreenPagesMainScreenPreview() {
         override suspend fun search(latitude: Double?, longitude: Double?, keywords: String?, categoryRefId: String?, distance: Int?, page: Int?, limit: Int?) = Result.success(searchResults.value!!)
     }
 
-    val mockClassifiedRepo = object : com.green.yp.app.shared.repository.ClassifiedRepository {
+    val mockClassifiedRepo = object : com.green.yp.app.shared.repository.ClassifiedReferenceRepository {
         override val categories = kotlinx.coroutines.flow.MutableStateFlow(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedCategory>())
+        override val adTypes = kotlinx.coroutines.flow.MutableStateFlow(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedAdType>())
         override val errorMessage = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
         override suspend fun getCategories() = Result.success(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedCategory>())
+        override suspend fun getClassifiedAdTypes() = Result.success(emptyList<com.green.yp.app.shared.dto.classified.ClassifiedAdType>())
     }
 
     val mockReferenceRepo = object : com.green.yp.app.shared.repository.ReferenceRepository {
@@ -120,12 +163,12 @@ fun GreenPagesMainScreenPreview() {
     }
 
     val searchVM = SearchViewModel(mockSearchRepo)
-    val classifiedVM = ClassifiedViewModel(mockClassifiedRepo)
+    val classifiedVM = ClassifiedReferenceViewModel(mockClassifiedRepo)
     val referenceVM = ReferenceViewModel(mockReferenceRepo)
 
     GreenPagesMainScreen(
         searchViewModel = searchVM,
-        classifiedViewModel = classifiedVM,
+        classifiedReferenceViewModel = classifiedVM,
         referenceViewModel = referenceVM
     )
 }

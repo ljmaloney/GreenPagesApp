@@ -1,8 +1,14 @@
 package com.green.yp.app
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.green.yp.app.enum.AppStateType
+import com.green.yp.app.wizard.GreenPagesClassifiedWizard
 
 @Composable
 fun App() {
@@ -10,13 +16,30 @@ fun App() {
         var state by remember {
             mutableStateOf(AppStateType.LOADING)
         }
+        var showWizard by remember { mutableStateOf(false) }
+        
         when (state) {
 
             AppStateType.LOADING ->
                 LoadingScreen(onLoadingComplete = { state = AppStateType.READY })
 
-            AppStateType.READY ->
-                GreenPagesMainScreen()
+            AppStateType.READY -> {
+                var targetTab by remember { mutableIntStateOf(0) }
+                if (showWizard) {
+                    GreenPagesClassifiedWizard(
+                        onBackClick = { showWizard = false },
+                        onNavigateHome = { tab ->
+                            targetTab = tab
+                            showWizard = false
+                        }
+                    )
+                } else {
+                    GreenPagesMainScreen(
+                        onNavigateToWizard = { showWizard = true },
+                        initialTab = targetTab
+                    )
+                }
+            }
 
             AppStateType.ERROR ->
                 ErrorScreen()

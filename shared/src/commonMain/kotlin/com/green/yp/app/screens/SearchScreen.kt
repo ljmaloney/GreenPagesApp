@@ -39,11 +39,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.UserLocation
+import com.green.yp.app.components.AlertBanner
+import com.green.yp.app.components.NoSearchResultsAlert
 import com.green.yp.app.getLocationManager
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.dto.reference.LineOfBusiness
 import com.green.yp.app.shared.dto.search.SearchRequestParams
-import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
@@ -56,9 +58,11 @@ data class SearchCategory(val id: Uuid, val name: String?)
 
 @Composable
 fun SearchScreen(
-    classifiedView: ClassifiedViewModel = koinViewModel(),
+    classifiedView: ClassifiedReferenceViewModel = koinViewModel(),
     referenceViewModel: ReferenceViewModel = koinViewModel(),
     paddingValues: PaddingValues = PaddingValues(16.dp),
+    initialParams: SearchRequestParams? = null,
+    initialShowNoResults: Boolean = false,
     onSearch: (SearchRequestParams) -> Unit = {},
     onAppear: () -> Unit = {}
 ) {
@@ -99,6 +103,8 @@ fun SearchScreen(
         paddingValues = paddingValues,
         userLocation = stableLocation,
         categories = combinedCategories,
+        initialParams = initialParams,
+        initialShowNoResults = initialShowNoResults,
         onSearchClick = { keywords, zip, distance, category ->
             val params = SearchRequestParams(
                 keywords = keywords.takeIf { it.isNotBlank() },
@@ -118,16 +124,31 @@ fun SearchScreenContent(
     paddingValues: PaddingValues,
     userLocation: UserLocation?,
     categories: List<SearchCategory> = emptyList(),
+    initialParams: SearchRequestParams? = null,
+    initialShowNoResults: Boolean = false,
     onSearchClick: (String, String, Float, SearchCategory?) -> Unit = { _, _, _, _ -> }
 ) {
-    var keywords by remember { mutableStateOf("") }
-    var zipCode by remember { mutableStateOf("") }
-    var selectedDistance by remember { mutableStateOf(10f) }
+    var keywords by remember { mutableStateOf(initialParams?.keywords ?: "") }
+    var zipCode by remember { mutableStateOf(initialParams?.zipCode ?: "") }
+    var selectedDistance by remember { mutableStateOf(initialParams?.distance?.toFloat() ?: 10f) }
     var selectedCategory by remember { mutableStateOf<SearchCategory?>(null) }
     var categoryExpanded by remember { mutableStateOf(false) }
+    var showNoResults by remember { mutableStateOf(initialShowNoResults) }
+
+    // Update local banner state when parent prop changes (e.g., navigation logic triggers showNoResults)
+    LaunchedEffect(initialShowNoResults) {
+        showNoResults = initialShowNoResults
+    }
+
+    LaunchedEffect(categories, initialParams) {
+        if (initialParams?.categoryRefId != null) {
+            selectedCategory = categories.firstOrNull { it.id.toString() == initialParams.categoryRefId }
+        }
+    }
 
     val isZipCodeRequired = userLocation == null
-    val isFormValid = selectedDistance > 0 && (zipCode.isNotEmpty() || userLocation != null)
+    val isZipValid = if (zipCode.isEmpty()) !isZipCodeRequired else zipCode.matches(Regex("^\\d{5}$"))
+    val isFormValid = selectedDistance > 0 && isZipValid && (zipCode.isNotEmpty() || userLocation != null)
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val buttonColor = if (isPressed) DarkGold else DarkGreen
@@ -140,10 +161,16 @@ fun SearchScreenContent(
             .padding(16.dp),
         horizontalAlignment = Alignment.Start,
     ) {
+        // No-results banner shown at top when a previous search returned no results
+        if (showNoResults) {
+            AlertBanner(alerts = listOf(NoSearchResultsAlert()), onDismiss = { _ -> showNoResults = false })
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         Text(
-            text = "Filter Providers",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 24.dp),
+            text = "Explore the marketplace",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = 20.dp),
             color = DarkGreen
         )
 
@@ -158,11 +185,17 @@ fun SearchScreenContent(
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            isError = isZipCodeRequired && zipCode.isEmpty(),
+            isError = !isZipValid,
             supportingText = {
                 if (isZipCodeRequired && zipCode.isEmpty()) {
                     Text(
                         text = "GPS location not available. Zip code is required.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                } else if (zipCode.isNotEmpty() && !isZipValid) {
+                    Text(
+                        text = "Zip code must be 5 digits.",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )

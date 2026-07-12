@@ -2,6 +2,8 @@ package com.green.yp.app.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,21 +17,23 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.ui.theme.DarkGreen
-import org.jetbrains.compose.resources.painterResource
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.green_pages_app_banner
+import org.jetbrains.compose.resources.painterResource
 
 @Preview
 @Composable
 fun GreenPagesTopBar(
-    onSearchClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {},
+    onLogoClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -47,7 +51,13 @@ fun GreenPagesTopBar(
             Image(
                 painter = painterResource(Res.drawable.green_pages_app_banner),
                 contentDescription = "Green Pages Banner",
-                modifier = Modifier.height(40.dp),
+                modifier = Modifier
+                    .height(40.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onLogoClick
+                    ),
                 contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.weight(1f))

@@ -44,8 +44,7 @@ class IOSLocationManager : LocationManager {
             when (didChangeAuthorizationStatus) {
                 platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse,
                 platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways -> {
-                    println("Authorization granted, starting updates")
-                    locationManager.startUpdatingLocation()
+                    println("Authorization granted")
                 }
                 platform.CoreLocation.kCLAuthorizationStatusDenied,
                 platform.CoreLocation.kCLAuthorizationStatusRestricted -> {
@@ -65,6 +64,8 @@ class IOSLocationManager : LocationManager {
     init {
         println("Initializing IOSLocationManager")
         locationManager.setDelegate(delegate)
+        locationManager.desiredAccuracy = platform.CoreLocation.kCLLocationAccuracyNearestTenMeters
+        locationManager.distanceFilter = 10.0 // Only update if moved 10 meters
         locationManager.requestWhenInUseAuthorization()
         // Removed startUpdatingLocation() from init to prevent continuous updates on start
     }
@@ -83,10 +84,12 @@ class IOSLocationManager : LocationManager {
     }
 
     override fun startLocationUpdates() {
+        println("Starting location updates")
         locationManager.startUpdatingLocation()
     }
 
     override fun stopLocationUpdates() {
+        println("Stopping location updates")
         locationManager.stopUpdatingLocation()
     }
 
