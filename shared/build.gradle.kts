@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktorfit)
     alias(libs.plugins.buildKonfig)
+    kotlin("native.cocoapods")
 }
 
 buildkonfig {
@@ -31,14 +32,30 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
-    iosArm64().binaries.framework {
-        baseName = "Shared"
-        isStatic = true
-    }
+//    iosArm64().binaries.framework {
+//        baseName = "Shared"
+//        isStatic = false
+//    }
+//
+//    iosSimulatorArm64().binaries.framework {
+//        baseName = "Shared"
+//        isStatic = false
+//    }
 
-    iosSimulatorArm64().binaries.framework {
-        baseName = "Shared"
-        isStatic = true
+    cocoapods {
+        summary = "GreenYP shared module"
+        homepage = "https://greenyp.com"
+
+        version = "1.0"
+        ios.deploymentTarget = "16.0"
+
+        framework {
+            baseName = "Shared"
+            isStatic = false
+        }
+
+        pod("SquareInAppPaymentsSDK")
+        pod("SquareBuyerVerificationSDK")
     }
     
     androidLibrary {
@@ -63,6 +80,7 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation(libs.google.playServices.location)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.square.card.entry)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

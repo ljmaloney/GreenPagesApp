@@ -25,6 +25,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven("https://sdk.squareup.com/public/android/")
     }
 }
 

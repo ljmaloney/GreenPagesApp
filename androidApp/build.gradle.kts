@@ -40,6 +40,9 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        val squareId = project.findProperty("SQUARE_APPLICATION_ID")?.toString() ?: "sandbox-sq0idb-M2aZ-sHnLqx0tFnGEbgTbw"
+        manifestPlaceholders["SQUARE_APPLICATION_ID"] = squareId
     }
     packaging {
         resources {
