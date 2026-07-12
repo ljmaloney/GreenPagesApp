@@ -12,6 +12,7 @@ import de.jensklingenberg.ktorfit.http.POST
 import de.jensklingenberg.ktorfit.http.Path
 import de.jensklingenberg.ktorfit.http.Query
 import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.statement.HttpResponse
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -42,5 +43,5 @@ interface ClassifiedApi {
         @Body body: MultiPartFormDataContent,
         @Query("imageFilename") imageFilename: String,
         @Query("imageDescription") imageDescription: String?
-    ): ResponseWrapper<Unit?>
+    ): HttpResponse
 }

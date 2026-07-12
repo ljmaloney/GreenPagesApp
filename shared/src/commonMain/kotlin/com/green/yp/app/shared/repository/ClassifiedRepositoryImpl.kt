@@ -2,6 +2,7 @@ package com.green.yp.app.shared.repository
 
 import co.touchlab.kermit.Logger
 import com.green.yp.app.shared.api.ClassifiedApi
+import com.green.yp.app.shared.dto.ResponseWrapper
 import com.green.yp.app.shared.dto.classified.ClassifiedImageUpload
 import com.green.yp.app.shared.dto.classified.ClassifiedPayment
 import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
@@ -12,6 +13,7 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.PartData
@@ -19,9 +21,12 @@ import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.json.Json
 import kotlin.uuid.Uuid
 
 class ClassifiedRepositoryImpl(private val classifiedApi: ClassifiedApi) : ClassifiedRepository {
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     private val _createdAd = MutableStateFlow<ClassifiedResponse?>(null)
     override val createdAd: StateFlow<ClassifiedResponse?> = _createdAd.asStateFlow()
@@ -131,30 +136,37 @@ class ClassifiedRepositoryImpl(private val classifiedApi: ClassifiedApi) : Class
                 }
             )
 
-            val result = classifiedApi.uploadImage(
+            classifiedApi.uploadImage(
                 classifiedId = request.classifiedId,
                 body = MultiPartFormDataContent(listOf(filePart)),
                 imageFilename = request.fileName,
                 imageDescription = request.description
             )
 
-            result.errorMessageApi?.let { error ->
-                _errorMessage.value = error.displayMessage
-                throw IllegalStateException(error.displayMessage)
-            }
-            
             _errorMessage.value = null
             Unit
         }.onFailure { throwable ->
-            val message = when (throwable) {
-                is ClientRequestException -> "Client error: ${throwable.response.status.value}"
-                is ServerResponseException -> "Server error: ${throwable.response.status.value}"
-                is ResponseException -> "Network error: ${throwable.response.status.value}"
-                else -> throwable.message ?: "Unknown error"
-            }
+            val message = parseUploadError(throwable)
+            log.e("Upload image failed: $message")
             _errorMessage.value = message
         }.also {
             _isLoading.value = false
+        }
+    }
+
+    private suspend fun parseUploadError(throwable: Throwable): String {
+        return when (throwable) {
+            is ResponseException -> {
+                val response = throwable.response
+                try {
+                    val body = response.bodyAsText()
+                    val wrapper = json.decodeFromString<ResponseWrapper<Unit?>>(body)
+                    wrapper.errorMessageApi?.displayMessage ?: "Error: ${response.status.value}"
+                } catch (_: Exception) {
+                    "Error: ${response.status.value}"
+                }
+            }
+            else -> throwable.message ?: "Unknown error"
         }
     }
 
