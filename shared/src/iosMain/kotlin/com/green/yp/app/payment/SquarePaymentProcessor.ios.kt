@@ -1,5 +1,7 @@
 package com.green.yp.app.payment
 
+import platform.darwin.NSObject
+
 actual class SquarePaymentProcessor {
 
     actual fun startPayment(
@@ -7,6 +9,10 @@ actual class SquarePaymentProcessor {
         currency: String,
         onResult: (PaymentResult) -> Unit
     ) {
-        // call Swift bridge here
+        SquarePaymentNative.startPayment(
+            amount,
+            currency,
+            onResult
+        )
     }
 }

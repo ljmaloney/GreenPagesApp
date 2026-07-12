@@ -53,9 +53,13 @@ kotlin {
             baseName = "Shared"
             isStatic = false
         }
+        pod("SquareInAppPaymentsSDK") {
+            version = "1.6.7"
+        }
 
-        pod("SquareInAppPaymentsSDK")
-        pod("SquareBuyerVerificationSDK")
+        pod("SquareBuyerVerificationSDK") {
+            version = "1.6.7"
+        }
     }
     
     androidLibrary {
@@ -80,7 +84,7 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation(libs.google.playServices.location)
             implementation(libs.ktor.client.okhttp)
-            implementation(libs.square.card.entry)
+            api(libs.square.card.entry)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

@@ -9,8 +9,8 @@ Pod::Spec.new do |spec|
     spec.vendored_frameworks      = 'build/cocoapods/framework/Shared.framework'
     spec.libraries                = 'c++'
     spec.ios.deployment_target    = '16.0'
-    spec.dependency 'SquareBuyerVerificationSDK'
-    spec.dependency 'SquareInAppPaymentsSDK'
+    spec.dependency 'SquareBuyerVerificationSDK', '1.6.7'
+    spec.dependency 'SquareInAppPaymentsSDK', '1.6.7'
     if !Dir.exist?('build/cocoapods/framework/Shared.framework') || Dir.empty?('build/cocoapods/framework/Shared.framework')
         raise "
         Kotlin framework 'Shared' doesn't exist yet, so a proper Xcode project can't be generated.

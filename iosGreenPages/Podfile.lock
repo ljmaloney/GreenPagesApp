@@ -1,7 +1,7 @@
 PODS:
   - shared (1.0):
-    - SquareBuyerVerificationSDK
-    - SquareInAppPaymentsSDK
+    - SquareBuyerVerificationSDK (= 1.6.7)
+    - SquareInAppPaymentsSDK (= 1.6.7)
   - SquareBuyerVerificationSDK (1.6.7)
   - SquareInAppPaymentsSDK (1.6.7)
 
@@ -18,7 +18,7 @@ EXTERNAL SOURCES:
     :path: "../shared"
 
 SPEC CHECKSUMS:
-  shared: 478f9428c25a2d0d1857d2df3e267685b08ffe88
+  shared: d6bb871a317daf32f8f0b9d5dd992bf693cd620b
   SquareBuyerVerificationSDK: e4589f81dfb842c7d19134fe1d71722ae7cc8cc4
   SquareInAppPaymentsSDK: 07eb46834e31300d27510ad3ee15940970edd327
 
