@@ -4,11 +4,13 @@ import com.green.yp.app.shared.api.SearchApi
 import com.green.yp.app.shared.dto.PageableResponse
 import com.green.yp.app.shared.dto.ResponseWrapper
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import io.ktor.client.plugins.*
-import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.json.Json
 
 class SearchRepositoryImpl(

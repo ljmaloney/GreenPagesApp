@@ -6,16 +6,23 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.CompositionLocalProvider
+import com.green.yp.app.media.AndroidImagePicker
+import com.green.yp.app.media.LocalImagePicker
 import com.green.yp.app.shared.di.KoinInitializer
 
 class MainActivity : ComponentActivity() {
+    private val imagePicker = AndroidImagePicker(this)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         KoinInitializer.init()
         setContent {
-            App()
+            CompositionLocalProvider(LocalImagePicker provides imagePicker) {
+                App()
+            }
         }
     }
 }

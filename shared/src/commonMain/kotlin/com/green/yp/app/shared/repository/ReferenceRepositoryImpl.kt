@@ -2,10 +2,12 @@ package com.green.yp.app.shared.repository
 
 import com.green.yp.app.shared.api.ReferenceApi
 import com.green.yp.app.shared.dto.reference.LineOfBusiness
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.ServerResponseException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import io.ktor.client.plugins.*
 
 class ReferenceRepositoryImpl(
     private val referenceApi: ReferenceApi

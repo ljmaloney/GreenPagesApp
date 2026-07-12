@@ -1,6 +1,5 @@
 package com.green.yp.app.components
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -18,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.green.yp.app.ui.theme.DarkGreen
 
 data class NavItem(val label: String, val icon: ImageVector)
@@ -26,7 +24,8 @@ data class NavItem(val label: String, val icon: ImageVector)
 @Composable
 fun GreenPagesBottomBar(
     selectedTab: Int,
-    onTabSelected: (Int) -> Unit
+    onTabSelected: (Int) -> Unit,
+    onCreateClick: () -> Unit = {}
 ) {
     val navItems = listOf(
         NavItem("Home", Icons.Default.Home),
@@ -39,13 +38,19 @@ fun GreenPagesBottomBar(
     NavigationBar(
         containerColor = Color.White,
         contentColor = DarkGreen,
-        modifier = Modifier.navigationBarsPadding()
+        modifier = Modifier
     ) {
         navItems.forEachIndexed { index, item ->
             val isSelected = selectedTab == index
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { onTabSelected(index) },
+                onClick = {
+                    if (index == 2) {
+                        onCreateClick()
+                    } else {
+                        onTabSelected(index)
+                    }
+                },
                 icon = {
                     Icon(
                         imageVector = item.icon,
@@ -74,6 +79,7 @@ fun GreenPagesBottomBar(
 fun GreenPagesBottomBarPreview() {
     GreenPagesBottomBar(
         selectedTab = 0,
-        onTabSelected = {}
+        onTabSelected = {},
+        onCreateClick = {}
     )
 }

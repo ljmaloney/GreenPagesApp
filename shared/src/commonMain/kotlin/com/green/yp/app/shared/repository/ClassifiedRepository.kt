@@ -1,11 +1,26 @@
 package com.green.yp.app.shared.repository
 
-import com.green.yp.app.shared.dto.classified.ClassifiedCategory
+import com.green.yp.app.shared.dto.classified.ClassifiedImageUpload
+import com.green.yp.app.shared.dto.classified.ClassifiedPayment
+import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
+import com.green.yp.app.shared.dto.classified.ClassifiedRequest
+import com.green.yp.app.shared.dto.classified.ClassifiedResponse
+import com.green.yp.app.shared.dto.classified.ImageGallery
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.uuid.Uuid
 
 interface ClassifiedRepository {
-    val categories: StateFlow<List<ClassifiedCategory>>
-    // Expose an error message to be observed by the UI. Null when no error.
+    val createdAd: StateFlow<ClassifiedResponse?>
+    val paymentResponse: StateFlow<ClassifiedPaymentResponse?>
     val errorMessage: StateFlow<String?>
-    suspend fun getCategories(): Result<List<ClassifiedCategory>>
+    val isLoading: StateFlow<Boolean>
+    val isValidated: StateFlow<Boolean>
+    val imageGallery: StateFlow<List<ImageGallery>>
+
+    suspend fun createClassifiedAd(request: ClassifiedRequest): Result<ClassifiedResponse>
+    suspend fun validateClassifiedEmail(classifiedId: Uuid, emailAddress: String, token: String): Result<Unit>
+    suspend fun processClassifiedPayment(payment: ClassifiedPayment): Result<ClassifiedPaymentResponse>
+    suspend fun uploadImage(request: ClassifiedImageUpload): Result<Unit>
+    suspend fun getClassifiedImageGallery(classifiedId: Uuid): Result<List<ImageGallery>>
+    suspend fun getClassified(classifiedId: Uuid): Result<ClassifiedResponse>
 }
