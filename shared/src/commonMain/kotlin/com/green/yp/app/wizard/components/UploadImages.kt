@@ -153,7 +153,7 @@ fun ImageGalleryItem(image: ImageGallery) {
             contentScale = ContentScale.Crop
         )
         Text(
-            text = image.imageName,
+            text = image.imageName ?: "",
             style = MaterialTheme.typography.labelSmall,
             maxLines = 1,
             modifier = Modifier.padding(top = 4.dp)

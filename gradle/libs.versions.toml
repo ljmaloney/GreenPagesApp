@@ -23,6 +23,7 @@ koin = "4.2.2"
 coil = "3.0.4"
 kermit = "2.0.4"
 buildKonfig = "0.22.0"
+square-inapp-payments = "1.6.8"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -61,6 +62,7 @@ koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", ver
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+square-card-entry = { module = "com.squareup.sdk.in-app-payments:card-entry", version.ref = "square-inapp-payments" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

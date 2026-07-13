@@ -8,9 +8,9 @@ data class SearchResponseDTO(
     @SerialName("externId")
     val externId: String,
     @SerialName("producerId")
-    val producerId: String,
+    val producerId: String?,
     @SerialName("locationId")
-    val locationId: String,
+    val locationId: String?,
     @SerialName("categoryRef")
     val categoryRef: String,
     @SerialName("categoryName")
@@ -26,7 +26,7 @@ data class SearchResponseDTO(
     @SerialName("title")
     val title: String,
     @SerialName("businessName")
-    val businessName: String,
+    val businessName: String?,
     @SerialName("businessUrl")
     val businessUrl: String? = null,
     @SerialName("businessIconUrl")
@@ -34,7 +34,7 @@ data class SearchResponseDTO(
     @SerialName("imageUrl")
     val imageUrl: String? = null,
     @SerialName("addressLine1")
-    val addressLine1: String,
+    val addressLine1: String? = null,
     @SerialName("addressLine2")
     val addressLine2: String? = null,
     @SerialName("city")

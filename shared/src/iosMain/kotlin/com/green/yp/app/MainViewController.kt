@@ -10,10 +10,16 @@ import androidx.compose.runtime.setValue
 import com.green.yp.app.media.IOSImagePicker
 import com.green.yp.app.media.IOSPickerDelegate
 import com.green.yp.app.media.LocalImagePicker
+import com.green.yp.app.payment.SquarePaymentBridge
+import com.green.yp.app.payment.SquarePaymentNative
 
 import com.green.yp.app.shared.di.KoinInitializer
 
-fun MainViewController(pickerDelegate: IOSPickerDelegate) = ComposeUIViewController {
+fun MainViewController(
+    pickerDelegate: IOSPickerDelegate,
+    paymentBridge: SquarePaymentBridge
+) = ComposeUIViewController {
+    SquarePaymentNative.setBridge(paymentBridge)
     val imagePicker = remember { IOSImagePicker(pickerDelegate) }
     CompositionLocalProvider(LocalImagePicker provides imagePicker) {
         RootContent() 

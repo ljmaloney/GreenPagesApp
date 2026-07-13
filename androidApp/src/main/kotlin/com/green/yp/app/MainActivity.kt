@@ -1,5 +1,6 @@
 package com.green.yp.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,6 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.CompositionLocalProvider
 import com.green.yp.app.media.AndroidImagePicker
 import com.green.yp.app.media.LocalImagePicker
+import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.shared.di.KoinInitializer
 
 class MainActivity : ComponentActivity() {
@@ -24,6 +26,11 @@ class MainActivity : ComponentActivity() {
                 App()
             }
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        SquarePaymentProcessor.handleActivityResult(data)
     }
 }
 

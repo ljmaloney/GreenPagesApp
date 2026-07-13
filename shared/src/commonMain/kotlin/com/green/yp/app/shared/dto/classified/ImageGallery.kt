@@ -6,6 +6,6 @@ import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class)
 @Serializable
-data class ImageGallery( @SerialName("imageName") val imageName: String,
+data class ImageGallery( @SerialName("imageName") val imageName: String?,
                          @SerialName("description")val description: String?,
                          @SerialName("url") val url: String)

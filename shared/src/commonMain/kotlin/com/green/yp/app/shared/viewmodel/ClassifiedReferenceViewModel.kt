@@ -7,6 +7,8 @@ import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.repository.ClassifiedReferenceRepository
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class ClassifiedReferenceViewModel(
     private val repository: ClassifiedReferenceRepository
@@ -38,5 +40,10 @@ class ClassifiedReferenceViewModel(
     fun retry() {
         fetchCategories()
         fetchAdTypes()
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun getAdTypeById(adTypeId: Uuid): ClassifiedAdType? {
+        return adTypes.value.find { it.adTypeId == adTypeId }
     }
 }

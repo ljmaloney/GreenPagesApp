@@ -1,0 +1,27 @@
+PODS:
+  - shared (1.0):
+    - SquareBuyerVerificationSDK (= 1.6.7)
+    - SquareInAppPaymentsSDK (= 1.6.7)
+  - SquareBuyerVerificationSDK (1.6.7)
+  - SquareInAppPaymentsSDK (1.6.7)
+
+DEPENDENCIES:
+  - shared (from `../shared`)
+
+SPEC REPOS:
+  trunk:
+    - SquareBuyerVerificationSDK
+    - SquareInAppPaymentsSDK
+
+EXTERNAL SOURCES:
+  shared:
+    :path: "../shared"
+
+SPEC CHECKSUMS:
+  shared: d6bb871a317daf32f8f0b9d5dd992bf693cd620b
+  SquareBuyerVerificationSDK: e4589f81dfb842c7d19134fe1d71722ae7cc8cc4
+  SquareInAppPaymentsSDK: 07eb46834e31300d27510ad3ee15940970edd327
+
+PODFILE CHECKSUM: 53e7a9b798426fa3e689a38ab7b20f4cabcf16a5
+
+COCOAPODS: 1.17.0
