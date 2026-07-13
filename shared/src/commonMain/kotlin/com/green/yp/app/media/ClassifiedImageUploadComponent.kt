@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,7 +58,9 @@ fun ClassifiedImageUploadComponent(
     val snackbarHostState = remember { SnackbarHostState() }
     var resetTrigger by remember { mutableStateOf(0) }
     var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+    var showSuccessAlert by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var selectedImageForSheet by remember { mutableStateOf<ImageResult?>(null) }
 
     LaunchedEffect(isUploadSuccess) {
         if (isUploadSuccess) {
@@ -67,26 +71,56 @@ fun ClassifiedImageUploadComponent(
             )
             resetTrigger++
             showBottomSheet = false
+            showSuccessAlert = true
+            selectedImageForSheet = null
             viewModel.clearUploadSuccess()
         }
     }
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Button(
-                onClick = { showBottomSheet = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DarkGreen,
-                    contentColor = Color.White
+            if (showSuccessAlert) {
+                AlertBanner(
+                    alerts = listOf(
+                        AlertBannerItem(
+                            id = "upload-success",
+                            title = "Success",
+                            message = "Image uploaded successfully",
+                            type = AlertType.SUCCESS
+                        )
+                    ),
+                    onDismiss = { showSuccessAlert = false }
                 )
-            ) {
-                Text("Select Image")
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            if (!showBottomSheet) {
+                Button(
+                    onClick = {
+                        imagePicker.pickImage { result ->
+                            selectedImageForSheet = result
+                            showBottomSheet = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = DarkGreen,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        if (selectedImageForSheet == null) "Select Image" 
+                        else "Select a Different Image"
+                    )
+                }
             }
 
             if (showBottomSheet) {
                 ModalBottomSheet(
-                    onDismissRequest = { showBottomSheet = false },
+                    onDismissRequest = {
+                        showBottomSheet = false
+                        selectedImageForSheet = null
+                    },
                     sheetState = sheetState
                 ) {
                     ClassifiedImageUploadComponentContent(
@@ -95,7 +129,7 @@ fun ClassifiedImageUploadComponent(
                         showSuccessAlert = false,
                         onDismissSuccessAlert = {},
                         resetTrigger = resetTrigger,
-                        imagePicker = imagePicker,
+                        initialImage = selectedImageForSheet,
                         onUpload = { image, fileName, description ->
                             println("DEBUG: onUpload triggered in UI")
                             viewModel.uploadImage(
@@ -124,7 +158,6 @@ fun ClassifiedImageUploadComponent(
 fun ClassifiedImageUploadComponentContent(
     isLoading: Boolean,
     errorMessage: String?,
-    imagePicker: ImagePicker,
     showSuccessAlert: Boolean = false,
     onDismissSuccessAlert: () -> Unit = {},
     resetTrigger: Int = 0,
@@ -134,11 +167,13 @@ fun ClassifiedImageUploadComponentContent(
     var selectedImage by remember(resetTrigger) { mutableStateOf(initialImage) }
     var fileName by remember(resetTrigger) { mutableStateOf(initialImage?.fileName ?: "") }
     var description by remember(resetTrigger) { mutableStateOf("") }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
+            .verticalScroll(scrollState)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -163,17 +198,9 @@ fun ClassifiedImageUploadComponentContent(
             fontWeight = FontWeight.Bold
         )
 
-        ImagePickerField(
-            picker = imagePicker,
-            onSelected = { result ->
-                selectedImage = result
-                fileName = result.fileName
-            }
-        )
-
         selectedImage?.let { image ->
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Box(
                 modifier = Modifier
                     .size(150.dp)
@@ -236,17 +263,15 @@ fun ClassifiedImageUploadComponentContent(
                 }
             }
         }
+        
+        // Add some spacer at the bottom to ensure the keyboard doesn't cover the button even when scrolled
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
 @Preview
 @Composable
 fun ClassifiedImageUploadComponentPreview() {
-    val mockImagePicker = object : ImagePicker {
-        override fun pickImage(onResult: (ImageResult) -> Unit) {
-        }
-    }
-
     MaterialTheme {
         Surface {
             ClassifiedImageUploadComponentContent(
@@ -254,7 +279,6 @@ fun ClassifiedImageUploadComponentPreview() {
                 errorMessage = null,
                 showSuccessAlert = true,
                 onDismissSuccessAlert = {},
-                imagePicker = mockImagePicker,
                 initialImage = ImageResult(ByteArray(0), "preview_image.jpg", "image/jpeg"),
                 onUpload = { _, _, _ -> }
             )
