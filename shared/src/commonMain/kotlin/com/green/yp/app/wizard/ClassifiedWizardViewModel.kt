@@ -1,14 +1,21 @@
 package com.green.yp.app.wizard
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import com.green.yp.app.payment.PaymentResult
+import com.green.yp.app.payment.SquarePaymentProcessor
+import com.green.yp.app.shared.dto.classified.ClassifiedPayment
+import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
 import com.green.yp.app.shared.dto.classified.ClassifiedRequest
+import com.green.yp.app.shared.dto.classified.ProducerPayment
 import com.green.yp.app.shared.repository.ClassifiedRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.uuid.Uuid
+import kotlinx.coroutines.launch
+import kotlin.uuid.ExperimentalUuidApi
 
 class ClassifiedWizardViewModel(
     private val repository: ClassifiedRepository
@@ -37,100 +44,6 @@ class ClassifiedWizardViewModel(
             copy(
                 draft = transform(draft)
             )
-        }
-    }
-
-    // ------------------------
-    // Draft Updates
-    // ------------------------
-
-    fun updateCategory(categoryId: Uuid) {
-        updateDraft { draft ->
-            draft.copy(categoryId = categoryId)
-        }
-    }
-
-    fun updateAdType(adType: Uuid) {
-        updateDraft { draft ->
-            draft.copy(adType = adType)
-        }
-    }
-
-    fun updatePrice(price: Double?) {
-        updateDraft { draft ->
-            draft.copy(price = price)
-        }
-    }
-
-    fun updatePricePerUnitType(value: String) {
-        updateDraft { draft ->
-            draft.copy(pricePerUnitType = value)
-        }
-    }
-
-    fun updateTitle(value: String) {
-        updateDraft { draft ->
-            draft.copy(title = value)
-        }
-    }
-
-    fun updateDescription(value: String) {
-        updateDraft { draft ->
-            draft.copy(description = value)
-        }
-    }
-
-    fun updateAddress(value: String) {
-        updateDraft { draft ->
-            draft.copy(address = value)
-        }
-    }
-
-    fun updateCity(value: String) {
-        updateDraft { draft ->
-            draft.copy(city = value)
-        }
-    }
-
-    fun updateStateCode(value: String) {
-        updateDraft { draft ->
-            draft.copy(state = value)
-        }
-    }
-
-    fun updatePostalCode(value: String) {
-        updateDraft { draft ->
-            draft.copy(postalCode = value)
-        }
-    }
-
-    fun updateFirstName(value: String) {
-        updateDraft { draft ->
-            draft.copy(firstName = value)
-        }
-    }
-
-    fun updateLastName(value: String) {
-        updateDraft { draft ->
-            draft.copy(lastName = value)
-        }
-    }
-
-    fun updatePhoneNumber(value: String) {
-        updateDraft { draft ->
-            draft.copy(phoneNumber = value)
-        }
-    }
-
-    fun updateEmailAddress(value: String) {
-        updateDraft { draft ->
-            draft.copy(emailAddress = value)
-        }
-    }
-
-    fun clearError() {
-        updateState {
-            copy(error = null)
         }
     }
 
@@ -176,6 +89,7 @@ class ClassifiedWizardViewModel(
     // Server Actions
     // ------------------------
 
+
     suspend fun validateEmail(token: String): Result<Unit> {
         val currentState = _state.value
         val listingId = currentState.listingId ?: return Result.failure(Exception("Listing ID not found"))
@@ -202,6 +116,77 @@ class ClassifiedWizardViewModel(
         }
 
         return result
+    }
+
+    fun startPaymentFlow(
+        paymentProcessor: SquarePaymentProcessor,
+        amount: Long,
+        currency: String,
+        emailValidationToken: String
+    ) {
+        paymentProcessor.startPayment(
+            amount = amount,
+            currency = currency
+        ) { result: PaymentResult ->
+            log.d("Payment result: $result")
+            when (result) {
+                is PaymentResult.Success -> {
+                    viewModelScope.launch {
+                        processPayment(result.token, emailValidationToken)
+                    }
+                }
+                is PaymentResult.Failure -> {
+                    updateState { copy(error = result.message) }
+                }
+            }
+        }
+    }
+
+    private suspend fun processPayment(paymentToken: String, emailValidationToken: String) {
+        val currentState = _state.value
+        val listingId = currentState.listingId ?: return
+
+        updateState { copy(loading = true, error = null) }
+
+        val payment = ClassifiedPayment(
+            referenceId = listingId,
+            paymentToken = paymentToken,
+            verificationToken = "", // Optional/Future
+            emailValidationToken = emailValidationToken,
+            companyName = "",
+            firstName = currentState.draft.firstName,
+            lastName = currentState.draft.lastName,
+            addressLine1 = currentState.draft.address,
+            addressLine2 = "",
+            city = currentState.draft.city,
+            state = currentState.draft.state,
+            postalCode = currentState.draft.postalCode,
+            phoneNumber = currentState.draft.phoneNumber,
+            emailAddress = currentState.draft.emailAddress,
+            producerPayment = ProducerPayment(
+                paymentMethod = "CHARGE",
+                actionType = "APPLY_ONCE",
+                cycleType = "MONTHLY"
+            )
+        )
+
+        val result = repository.processClassifiedPayment(payment)
+
+        result.onSuccess { response ->
+            updateState {
+                copy(
+                    loading = false,
+                    paymentResponse = response
+                )
+            }
+        }.onFailure { exception ->
+            updateState {
+                copy(
+                    loading = false,
+                    error = exception.message
+                )
+            }
+        }
     }
 
     // ------------------------

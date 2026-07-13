@@ -3,7 +3,7 @@ import UIKit
 import SquareInAppPaymentsSDK
 import Shared
 
-@objc public class SquarePaymentBridge: NSObject {
+@objc public class SquarePaymentBridge: NSObject, Shared.SquarePaymentBridge {
 
     @objc public static let shared = SquarePaymentBridge()
 
@@ -15,15 +15,23 @@ import Shared
         super.init()
     }
 
+    public func startPayment(
+        amount: Int64,
+        currency: String,
+        onResult: @escaping (String?, String?) -> Void
+    ) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.presentCardEntry(completion: onResult)
+        }
+    }
+
     @objc public func startPayment(
         amount: Int64,
         currency: String,
         completion: @escaping (String?, String?) -> Void
     ) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.presentCardEntry(completion: completion)
-        }
+        startPayment(amount: amount, currency: currency, onResult: completion)
     }
 
     private func presentCardEntry(

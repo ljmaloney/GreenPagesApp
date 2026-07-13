@@ -44,6 +44,7 @@ import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.EmailContactViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
+import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.ui.theme.DarkGreen
 import com.green.yp.app.ui.theme.LightLightGold
 import com.green.yp.app.wizard.components.AdDetails
@@ -51,6 +52,7 @@ import com.green.yp.app.wizard.components.AdLocation
 import com.green.yp.app.wizard.components.ClassifiedAdSelector
 import com.green.yp.app.wizard.components.ClassifiedPreview
 import com.green.yp.app.wizard.components.ContactInformation
+import com.green.yp.app.wizard.components.PaymentSuccess
 import com.green.yp.app.wizard.components.UploadImages
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -67,7 +69,8 @@ fun GreenPagesClassifiedWizard(
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
     imagePicker: ImagePicker? = null, // This should be provided by koin or composition local in a real app
     onBackClick: () -> Unit = {},
-    onNavigateHome: (initialTab: Int) -> Unit = {}
+    onNavigateHome: (initialTab: Int) -> Unit = {},
+    paymentProcessor: SquarePaymentProcessor? = null
 ) {
     val log = Logger.withTag("green.yp.app.wizard.GreenPagesClassifiedWizard")
     val scope = rememberCoroutineScope()
@@ -79,6 +82,9 @@ fun GreenPagesClassifiedWizard(
     val providedImagePicker = imagePicker ?: LocalImagePicker.current
     
     val scrollState = rememberScrollState()
+    
+    // Local state to store validation code for later use in payment
+    var validationCode by remember { mutableStateOf("") }
     
     // Local state to hold the draft during the current step. 
     // It resets to the committed draft whenever the step changes.
@@ -260,6 +266,7 @@ fun GreenPagesClassifiedWizard(
                             EmailValidationComponent(
                                 isLoading = emailLoading,
                                 onValidate = { code ->
+                                    validationCode = code
                                     val listingId = state.listingId?.toString() ?: ""
                                     val email = state.draft.emailAddress
                                     emailContactViewModel.validateEmail(
@@ -312,8 +319,21 @@ fun GreenPagesClassifiedWizard(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Button(
-                                    onClick = { /* TODO: Implement Place Ad logic */ },
+                                    onClick = {
+                                        val adType = classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == state.draft.adType }
+                                        val price = (adType?.monthlyPrice ?: 0.0) * 100 // Convert to cents
+                                        
+                                        paymentProcessor?.let { processor ->
+                                            wizardViewModel.startPaymentFlow(
+                                                paymentProcessor = processor,
+                                                amount = price.toLong(),
+                                                currency = "USD",
+                                                emailValidationToken = validationCode
+                                            )
+                                        }
+                                    },
                                     modifier = Modifier.fillMaxWidth(),
+                                    enabled = !state.loading,
                                     colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
                                 ) {
                                     Text("Place Ad", color = Color.White)
@@ -322,6 +342,7 @@ fun GreenPagesClassifiedWizard(
                                 OutlinedButton(
                                     onClick = { wizardViewModel.previousStep() },
                                     modifier = Modifier.fillMaxWidth(),
+                                    enabled = !state.loading,
                                     colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkGreen),
                                     border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                                         brush = SolidColor(DarkGreen)
@@ -334,7 +355,12 @@ fun GreenPagesClassifiedWizard(
                     }
 
                     ClassifiedWizardStep.PAYMENT -> {
-                        Text("Payment step", modifier = Modifier.padding(16.dp))
+                        state.paymentResponse?.let { response ->
+                            PaymentSuccess(
+                                response = response,
+                                onFinish = { onNavigateHome(0) }
+                            )
+                        } ?: Text("Payment processing...", modifier = Modifier.padding(16.dp))
                     }
             }
         }

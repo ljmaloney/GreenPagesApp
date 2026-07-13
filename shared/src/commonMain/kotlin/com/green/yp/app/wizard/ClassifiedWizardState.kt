@@ -1,5 +1,6 @@
 package com.green.yp.app.wizard
 
+import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
 import com.green.yp.app.shared.dto.classified.ImageGallery
 import kotlin.uuid.Uuid
 
@@ -9,6 +10,7 @@ data class ClassifiedWizardState(val draft: ClassifiedDraft = ClassifiedDraft(),
                                  val listingId: Uuid? = null,
                                  val emailValidated: Boolean = false,
                                  val uploadedImages: List<ImageGallery> = emptyList(),
+                                 val paymentResponse: ClassifiedPaymentResponse? = null,
                                  val loading: Boolean = false,
                                  val error: String? = null)
 
