@@ -216,13 +216,21 @@ class ClassifiedRepositoryImpl(private val classifiedApi: ClassifiedApi) : Class
             _errorMessage.value = null
             response
         }.onFailure { throwable ->
+            val is404 = throwable is ClientRequestException && throwable.response.status.value == 404
+            
             val message = when (throwable) {
                 is ClientRequestException -> "Client error: ${throwable.response.status.value}"
                 is ServerResponseException -> "Server error: ${throwable.response.status.value}"
                 is ResponseException -> "Network error: ${throwable.response.status.value}"
                 else -> throwable.message ?: "Unknown error"
             }
-            _errorMessage.value = message
+            
+            if (!is404) {
+                _errorMessage.value = message
+            } else {
+                // If 404, we just clear the gallery and don't set an error message
+                _imageGallery.value = emptyList()
+            }
         }.also {
             _isLoading.value = false
         }

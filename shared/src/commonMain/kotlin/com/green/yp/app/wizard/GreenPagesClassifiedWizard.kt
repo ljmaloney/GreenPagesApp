@@ -39,12 +39,12 @@ import com.green.yp.app.components.WizardProgressIndicator
 import com.green.yp.app.components.WizardStep
 import com.green.yp.app.media.ImagePicker
 import com.green.yp.app.media.LocalImagePicker
+import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.EmailContactViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
-import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.ui.theme.DarkGreen
 import com.green.yp.app.ui.theme.LightLightGold
 import com.green.yp.app.wizard.components.AdDetails
@@ -55,6 +55,7 @@ import com.green.yp.app.wizard.components.ContactInformation
 import com.green.yp.app.wizard.components.PaymentSuccess
 import com.green.yp.app.wizard.components.UploadImages
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -67,10 +68,10 @@ fun GreenPagesClassifiedWizard(
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
     emailContactViewModel: EmailContactViewModel = koinViewModel(),
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
-    imagePicker: ImagePicker? = null, // This should be provided by koin or composition local in a real app
+    paymentProcessor: SquarePaymentProcessor = koinInject(),
+    imagePicker: ImagePicker? = null,
     onBackClick: () -> Unit = {},
-    onNavigateHome: (initialTab: Int) -> Unit = {},
-    paymentProcessor: SquarePaymentProcessor? = null
+    onNavigateHome: (initialTab: Int) -> Unit = {}
 ) {
     val log = Logger.withTag("green.yp.app.wizard.GreenPagesClassifiedWizard")
     val scope = rememberCoroutineScope()
@@ -323,14 +324,12 @@ fun GreenPagesClassifiedWizard(
                                         val adType = classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == state.draft.adType }
                                         val price = (adType?.monthlyPrice ?: 0.0) * 100 // Convert to cents
                                         
-                                        paymentProcessor?.let { processor ->
-                                            wizardViewModel.startPaymentFlow(
-                                                paymentProcessor = processor,
-                                                amount = price.toLong(),
-                                                currency = "USD",
-                                                emailValidationToken = validationCode
-                                            )
-                                        }
+                                        wizardViewModel.startPaymentFlow(
+                                            paymentProcessor = paymentProcessor,
+                                            amount = price.toLong(),
+                                            currency = "USD",
+                                            emailValidationToken = validationCode
+                                        )
                                     },
                                     modifier = Modifier.fillMaxWidth(),
                                     enabled = !state.loading,
