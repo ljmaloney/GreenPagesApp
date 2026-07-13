@@ -308,7 +308,8 @@ fun GreenPagesClassifiedWizard(
                                 state.listingId?.let { listingId ->
                                     ClassifiedPreview(
                                         classifiedId = listingId,
-                                        viewModel = classifiedViewModel
+                                        viewModel = classifiedViewModel,
+                                        referenceViewModel = classifiedReferenceViewModel
                                     )
                                 } ?: Text("Ad data not found", modifier = Modifier.padding(16.dp))
                             }
