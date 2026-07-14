@@ -39,7 +39,6 @@ import com.green.yp.app.components.WizardProgressIndicator
 import com.green.yp.app.components.WizardStep
 import com.green.yp.app.media.ImagePicker
 import com.green.yp.app.media.LocalImagePicker
-import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.EmailContactViewModel
@@ -68,7 +67,6 @@ fun GreenPagesClassifiedWizard(
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
     emailContactViewModel: EmailContactViewModel = koinViewModel(),
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
-    paymentProcessor: SquarePaymentProcessor = koinInject(),
     imagePicker: ImagePicker? = null,
     onBackClick: () -> Unit = {},
     onNavigateHome: (initialTab: Int) -> Unit = {}
@@ -122,69 +120,73 @@ fun GreenPagesClassifiedWizard(
                     onSearchClick = { onNavigateHome(1) },
                     onLogoClick = { onNavigateHome(0) }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                WizardProgressIndicator(
-                    steps = wizardSteps,
-                    currentStep = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
-                        .takeIf { it >= 0 } ?: 0
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-        }
-        ,bottomBar = {
-            val currentStepIndex = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
-                .takeIf { it >= 0 } ?: 0
-            if (currentStepIndex < wizardSteps.size - 1) {
-                Surface(
-                    color = LightLightGold,
-                    shadowElevation = 8.dp,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    ClassifiedWizardBottomBar(
-                        onBack = {
-                            if (currentStepIndex == 0) {
-                                onBackClick()
-                            } else {
-                                wizardViewModel.previousStep()
-                            }
-                        },
-                        onNext = {
-                            log.d("onNext called")
-                        // If we are on Email Validation step, only allow Next if email is validated
-                        if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !emailValidated) {
-                             return@ClassifiedWizardBottomBar
-                        }
-
-                        // Trim trailing whitespace from all string fields in workingDraft before committing
-                        val trimmedDraft = workingDraft.copy(
-                                firstName = workingDraft.firstName.trimEnd(),
-                                lastName = workingDraft.lastName.trimEnd(),
-                                address = workingDraft.address.trimEnd(),
-                                city = workingDraft.city.trimEnd(),
-                                state = workingDraft.state.trimEnd(),
-                                postalCode = workingDraft.postalCode.trimEnd(),
-                                phoneNumber = workingDraft.phoneNumber.trimEnd(),
-                                emailAddress = workingDraft.emailAddress.trimEnd(),
-                                title = workingDraft.title.trimEnd(),
-                                description = workingDraft.description.trimEnd(),
-                                pricePerUnitType = workingDraft.pricePerUnitType?.trimEnd()
-                            )
-                            
-                            // Commit the trimmed draft to the ViewModel before moving to the next step
-                            wizardViewModel.updateDraft { trimmedDraft }
-                            scope.launch {
-                                log.d("onNext launch called")
-                                wizardViewModel.nextStep()
-                            }
-                        },
-                        onPreview = { },
-                        currentStep = currentStepIndex,
-                        totalSteps = wizardSteps.size,
-                        isLoading = state.loading || emailLoading,
-                        isNextEnabled = if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION) emailValidated else true,
-                        isBackEnabled = true,
-                        viewModel = wizardViewModel
+                if (state.currentStep != ClassifiedWizardStep.PAYMENT) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    WizardProgressIndicator(
+                        steps = wizardSteps,
+                        currentStep = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
+                            .takeIf { it >= 0 } ?: 0
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        },
+        bottomBar = {
+            if (state.currentStep != ClassifiedWizardStep.PAYMENT) {
+                val currentStepIndex = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
+                    .takeIf { it >= 0 } ?: 0
+                if (currentStepIndex < wizardSteps.size - 1) {
+                    Surface(
+                        color = LightLightGold,
+                        shadowElevation = 8.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        ClassifiedWizardBottomBar(
+                            onBack = {
+                                if (currentStepIndex == 0) {
+                                    onBackClick()
+                                } else {
+                                    wizardViewModel.previousStep()
+                                }
+                            },
+                            onNext = {
+                                log.d("onNext called")
+                                // If we are on Email Validation step, only allow Next if email is validated
+                                if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !emailValidated) {
+                                    return@ClassifiedWizardBottomBar
+                                }
+
+                                // Trim trailing whitespace from all string fields in workingDraft before committing
+                                val trimmedDraft = workingDraft.copy(
+                                    firstName = workingDraft.firstName.trimEnd(),
+                                    lastName = workingDraft.lastName.trimEnd(),
+                                    address = workingDraft.address.trimEnd(),
+                                    city = workingDraft.city.trimEnd(),
+                                    state = workingDraft.state.trimEnd(),
+                                    postalCode = workingDraft.postalCode.trimEnd(),
+                                    phoneNumber = workingDraft.phoneNumber.trimEnd(),
+                                    emailAddress = workingDraft.emailAddress.trimEnd(),
+                                    title = workingDraft.title.trimEnd(),
+                                    description = workingDraft.description.trimEnd(),
+                                    pricePerUnitType = workingDraft.pricePerUnitType?.trimEnd()
+                                )
+
+                                // Commit the trimmed draft to the ViewModel before moving to the next step
+                                wizardViewModel.updateDraft { trimmedDraft }
+                                scope.launch {
+                                    log.d("onNext launch called")
+                                    wizardViewModel.nextStep()
+                                }
+                            },
+                            onPreview = { },
+                            currentStep = currentStepIndex,
+                            totalSteps = wizardSteps.size,
+                            isLoading = state.loading || emailLoading,
+                            isNextEnabled = if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION) emailValidated else true,
+                            isBackEnabled = true,
+                            viewModel = wizardViewModel
+                        )
+                    }
                 }
             }
         }
@@ -326,7 +328,6 @@ fun GreenPagesClassifiedWizard(
                                         val price = (adType?.monthlyPrice ?: 0.0) * 100 // Convert to cents
                                         
                                         wizardViewModel.startPaymentFlow(
-                                            paymentProcessor = paymentProcessor,
                                             amount = price.toLong(),
                                             currency = "USD",
                                             emailValidationToken = validationCode

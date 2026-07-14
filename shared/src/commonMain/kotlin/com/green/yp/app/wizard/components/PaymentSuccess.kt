@@ -25,9 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
 import com.green.yp.app.ui.theme.DarkGreen
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Composable
 fun PaymentSuccess(
@@ -97,6 +100,28 @@ fun PaymentSuccess(
         ) {
             Text("Go to Home", color = Color.White)
         }
+    }
+}
+
+@OptIn(ExperimentalUuidApi::class)
+@Preview
+@Composable
+fun PaymentSuccessPreview() {
+    val mockResponse = ClassifiedPaymentResponse(
+        classifiedId = Uuid.random(),
+        classifiedTitle = "Premium Garden Soil Ad",
+        paymentStatus = "COMPLETED",
+        paymentRef = "PAY-67890",
+        orderRef = "ORD-12345",
+        receiptNumber = "RCPT-001",
+        errorStatusCode = "200",
+        errorDetail = "None"
+    )
+    MaterialTheme {
+        PaymentSuccess(
+            response = mockResponse,
+            onFinish = {}
+        )
     }
 }
 

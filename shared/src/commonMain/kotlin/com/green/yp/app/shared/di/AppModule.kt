@@ -1,6 +1,7 @@
 package com.green.yp.app.shared.di
 
 import com.green.yp.app.config.PlatformConfig
+import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.shared.api.ClassifiedApi
 import com.green.yp.app.shared.api.ClassifiedReferenceApi
 import com.green.yp.app.shared.api.EmailContactApi
@@ -101,6 +102,9 @@ val appModule = module {
     }
 
     factory {
-        ClassifiedWizardViewModel(get<ClassifiedRepository>())
+        ClassifiedWizardViewModel(
+            get<ClassifiedRepository>(),
+            paymentProcessor = get<SquarePaymentProcessor>()
+        )
     }
 }

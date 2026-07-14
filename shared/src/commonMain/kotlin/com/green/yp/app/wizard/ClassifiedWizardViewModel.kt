@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 
 class ClassifiedWizardViewModel(
-    private val repository: ClassifiedRepository
+    private val repository: ClassifiedRepository,
+    private val paymentProcessor: SquarePaymentProcessor
 ) : ViewModel(){
 
     private val log = Logger.withTag("green.yp.app.wizard.ClassifiedWizardViewModel")
@@ -119,7 +120,6 @@ class ClassifiedWizardViewModel(
     }
 
     fun startPaymentFlow(
-        paymentProcessor: SquarePaymentProcessor,
         amount: Long,
         currency: String,
         emailValidationToken: String
@@ -176,7 +176,8 @@ class ClassifiedWizardViewModel(
             updateState {
                 copy(
                     loading = false,
-                    paymentResponse = response
+                    paymentResponse = response,
+                    currentStep = ClassifiedWizardStep.PAYMENT
                 )
             }
         }.onFailure { exception ->
