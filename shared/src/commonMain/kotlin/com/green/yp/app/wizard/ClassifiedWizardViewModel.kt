@@ -31,7 +31,7 @@ class ClassifiedWizardViewModel(
         _state.asStateFlow()
 
     init {
-        // Synchronize state from emailViewModel
+        // Synchronize state from emailViewModel to maintain unified wizard state
         emailViewModel.isValidated
             .onEach { validated -> updateState { copy(emailValidated = validated) } }
             .launchIn(viewModelScope)
@@ -124,7 +124,8 @@ class ClassifiedWizardViewModel(
         val currentState = _state.value
         val listingId = currentState.listingId?.toString() ?: return
         val email = currentState.draft.emailAddress
-
+        
+        // Delegate to emailViewModel which uses the correct /email/validate endpoint
         emailViewModel.validateEmail(listingId, email, token)
     }
 
