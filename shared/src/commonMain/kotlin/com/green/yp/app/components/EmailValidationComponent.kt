@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -47,6 +49,7 @@ fun EmailValidationComponent(
     val focusRequesters = remember { List(8) { FocusRequester() } }
     val focusManager = LocalFocusManager.current
     var showSuccessMessage by remember(isValidated) { mutableStateOf(isValidated) }
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         focusRequesters[0].requestFocus()
@@ -57,6 +60,7 @@ fun EmailValidationComponent(
             .background(Color.White)
             .then(modifier)
             .fillMaxWidth()
+            .verticalScroll(scrollState)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -227,6 +231,8 @@ fun EmailValidationComponent(
                 }
             }
         }
+        
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
