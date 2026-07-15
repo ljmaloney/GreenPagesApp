@@ -44,16 +44,13 @@ import com.green.yp.app.wizard.components.ContactInformation
 import com.green.yp.app.wizard.components.PaymentSuccess
 import com.green.yp.app.wizard.components.UploadImages
 import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun GreenPagesClassifiedWizard(
-    searchViewModel: SearchViewModel = koinViewModel(),
     classifiedReferenceViewModel: ClassifiedReferenceViewModel = koinViewModel(),
-    referenceViewModel: ReferenceViewModel = koinViewModel(),
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
     imagePicker: ImagePicker? = null,
@@ -174,23 +171,9 @@ fun GreenPagesClassifiedWizard(
                                     return@ClassifiedWizardBottomBar
                                 }
 
-                                // Trim trailing whitespace from all string fields in workingDraft before committing
-                                val trimmedDraft = workingDraft.copy(
-                                    firstName = workingDraft.firstName.trimEnd(),
-                                    lastName = workingDraft.lastName.trimEnd(),
-                                    address = workingDraft.address.trimEnd(),
-                                    city = workingDraft.city.trimEnd(),
-                                    state = workingDraft.state.trimEnd(),
-                                    postalCode = workingDraft.postalCode.trimEnd(),
-                                    phoneNumber = workingDraft.phoneNumber.trimEnd(),
-                                    emailAddress = workingDraft.emailAddress.trimEnd(),
-                                    title = workingDraft.title.trimEnd(),
-                                    description = workingDraft.description.trimEnd(),
-                                    pricePerUnitType = workingDraft.pricePerUnitType?.trimEnd()
-                                )
-
-                                // Commit the trimmed draft to the ViewModel before moving to the next step
-                                wizardViewModel.updateDraft { trimmedDraft }
+                                // Commit the draft to the ViewModel before moving to the next step
+                                // Trimming is handled automatically by the ViewModel
+                                wizardViewModel.updateDraft { workingDraft }
                                 scope.launch {
                                     log.d("onNext launch called")
                                     wizardViewModel.nextStep()

@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.uuid.ExperimentalUuidApi
 
 class ClassifiedWizardViewModel(
     private val repository: ClassifiedRepository,
@@ -55,13 +54,27 @@ class ClassifiedWizardViewModel(
 
     /**
      * Public draft updater used by all wizard screens.
+     * Automatically trims trailing whitespace from all string fields.
      */
     fun updateDraft(
         transform: (ClassifiedDraft) -> ClassifiedDraft
     ) {
         updateState {
+            val newDraft = transform(draft)
             copy(
-                draft = transform(draft)
+                draft = newDraft.copy(
+                    firstName = newDraft.firstName.trimEnd(),
+                    lastName = newDraft.lastName.trimEnd(),
+                    address = newDraft.address.trimEnd(),
+                    city = newDraft.city.trimEnd(),
+                    state = newDraft.state.trimEnd(),
+                    postalCode = newDraft.postalCode.trimEnd(),
+                    phoneNumber = newDraft.phoneNumber.trimEnd(),
+                    emailAddress = newDraft.emailAddress.trimEnd(),
+                    title = newDraft.title.trimEnd(),
+                    description = newDraft.description.trimEnd(),
+                    pricePerUnitType = newDraft.pricePerUnitType?.trimEnd()
+                )
             )
         }
     }
