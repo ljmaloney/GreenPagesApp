@@ -286,4 +286,10 @@ class ClassifiedWizardViewModel(
             description = draft.description
         )
     }
+
+    fun resetWizard() {
+        updateState {
+            ClassifiedWizardState()
+        }
+    }
 }

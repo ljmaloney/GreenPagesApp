@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.ui.theme.DarkGold
@@ -26,7 +27,6 @@ fun ClassifiedWizardBottomBar(
     nextButtonText: String = "Next >>",
     onBack: () -> Unit,
     onNext: () -> Unit,
-    onPreview: () -> Unit,
     currentStep: Int,
     totalSteps: Int,
     modifier: Modifier = Modifier,
@@ -47,8 +47,8 @@ fun ClassifiedWizardBottomBar(
             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Back Button - Hidden on first step
-            if (currentStep >= 0) { // Changed to >= 0 to allow showing even on first step if needed, or keeping specifyable logic
+            // Back Button
+            if (currentStep >= 0) {
                 OutlinedButton(
                     onClick = onBack,
                     enabled = !isLoading && isBackEnabled,
@@ -61,29 +61,21 @@ fun ClassifiedWizardBottomBar(
                 }
             }
 
-            // Next or Preview Button
-            if (currentStep < totalSteps - 1) {
-                Button(
-                    onClick = onNext,
-                    enabled = !isLoading && isNextEnabled,
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp,
-                            color = DarkGreen
-                        )
-                    } else {
-                        Text(nextButtonText)
-                    }
-                }
-            } else {
-                Button(
-                    onClick = onPreview,
-                    enabled = !isLoading && isNextEnabled,
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkGold)
-                ) {
+            // Primary Action Button (Next, Place Ad, etc.)
+            Button(
+                onClick = onNext,
+                enabled = !isLoading && isNextEnabled,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (currentStep < totalSteps - 1) DarkGreen else DarkGold
+                )
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = if (currentStep < totalSteps - 1) Color.White else DarkGreen
+                    )
+                } else {
                     Text(nextButtonText)
                 }
             }

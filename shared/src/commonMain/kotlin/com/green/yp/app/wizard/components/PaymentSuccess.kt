@@ -35,7 +35,6 @@ import kotlin.uuid.Uuid
 @Composable
 fun PaymentSuccess(
     response: ClassifiedPaymentResponse,
-    onFinish: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -92,14 +91,6 @@ fun PaymentSuccess(
                 SuccessRow(label = "Status", value = response.paymentStatus)
             }
         }
-
-        Button(
-            onClick = onFinish,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
-        ) {
-            Text("Go to Home", color = Color.White)
-        }
     }
 }
 
@@ -119,8 +110,7 @@ fun PaymentSuccessPreview() {
     )
     MaterialTheme {
         PaymentSuccess(
-            response = mockResponse,
-            onFinish = {}
+            response = mockResponse
         )
     }
 }

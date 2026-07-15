@@ -1,6 +1,5 @@
 package com.green.yp.app.wizard
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,9 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,25 +22,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
-import com.green.yp.app.components.AlertBanner
-import com.green.yp.app.components.AlertBannerItem
-import com.green.yp.app.components.AlertType
 import com.green.yp.app.components.EmailValidationComponent
 import com.green.yp.app.components.GreenPagesTopBar
 import com.green.yp.app.components.WizardProgressIndicator
 import com.green.yp.app.components.WizardStep
 import com.green.yp.app.media.ImagePicker
 import com.green.yp.app.media.LocalImagePicker
-import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
-import com.green.yp.app.ui.theme.DarkGreen
 import com.green.yp.app.ui.theme.LightLightGold
 import com.green.yp.app.wizard.components.AdDetails
 import com.green.yp.app.wizard.components.AdLocation
@@ -136,8 +126,7 @@ fun GreenPagesClassifiedWizard(
                     backButtonText = "Cancel Ad",
                     nextButtonText = "Place Ad",
                     onBack = { onNavigateHome(0) },
-                    onNext = { },
-                    onPreview = {
+                    onNext = {
                         wizardViewModel.startPaymentFlow(
                             amount = price.toLong(),
                             currency = "USD",
@@ -147,6 +136,17 @@ fun GreenPagesClassifiedWizard(
                     currentStep = wizardSteps.size - 1,
                     totalSteps = wizardSteps.size,
                     isLoading = state.loading,
+                    viewModel = wizardViewModel
+                )
+            } else if ( state.currentStep == ClassifiedWizardStep.PAYMENT_SUCCESS){
+                ClassifiedWizardBottomBar(
+                    backButtonText = "Return Home",
+                    nextButtonText = "Place Another Ad",
+                    onBack = { onNavigateHome(0) },
+                    onNext = { wizardViewModel.resetWizard() },
+                    currentStep = wizardSteps.size - 1,
+                    totalSteps = wizardSteps.size,
+                    isLoading = false,
                     viewModel = wizardViewModel
                 )
             }
@@ -196,7 +196,6 @@ fun GreenPagesClassifiedWizard(
                                     wizardViewModel.nextStep()
                                 }
                             },
-                            onPreview = { },
                             currentStep = currentStepIndex,
                             totalSteps = wizardSteps.size,
                             isLoading = state.loading,
@@ -300,12 +299,13 @@ fun GreenPagesClassifiedWizard(
                             }
                         }
                     }
-
                     ClassifiedWizardStep.PAYMENT -> {
+                        Text("Payment in progress...", modifier = Modifier.padding(16.dp))
+                    }
+                    ClassifiedWizardStep.PAYMENT_SUCCESS -> {
                         state.paymentResponse?.let { response ->
                             PaymentSuccess(
-                                response = response,
-                                onFinish = { onNavigateHome(0) }
+                                response = response
                             )
                         } ?: Text("Payment processing...", modifier = Modifier.padding(16.dp))
                     }
