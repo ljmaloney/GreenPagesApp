@@ -6,19 +6,22 @@ import co.touchlab.kermit.Logger
 import com.green.yp.app.payment.PaymentResult
 import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.shared.dto.classified.ClassifiedPayment
-import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
 import com.green.yp.app.shared.dto.classified.ClassifiedRequest
 import com.green.yp.app.shared.dto.classified.ProducerPayment
 import com.green.yp.app.shared.repository.ClassifiedRepository
+import com.green.yp.app.shared.viewmodel.EmailContactViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 
 class ClassifiedWizardViewModel(
     private val repository: ClassifiedRepository,
+    private val emailViewModel: EmailContactViewModel,
     private val paymentProcessor: SquarePaymentProcessor
 ) : ViewModel(){
 
@@ -27,6 +30,21 @@ class ClassifiedWizardViewModel(
 
     val state: StateFlow<ClassifiedWizardState> =
         _state.asStateFlow()
+
+    init {
+        // Synchronize state from emailViewModel
+        emailViewModel.isValidated
+            .onEach { validated -> updateState { copy(emailValidated = validated) } }
+            .launchIn(viewModelScope)
+
+        emailViewModel.isLoading
+            .onEach { loading -> updateState { copy(loading = loading) } }
+            .launchIn(viewModelScope)
+
+        emailViewModel.errorMessage
+            .onEach { error -> updateState { copy(error = error) } }
+            .launchIn(viewModelScope)
+    }
 
     private inline fun updateState(
         block: ClassifiedWizardState.() -> ClassifiedWizardState
@@ -89,34 +107,20 @@ class ClassifiedWizardViewModel(
     // ------------------------
     // Server Actions
     // ------------------------
-
-
-    suspend fun validateEmail(token: String): Result<Unit> {
+    fun validateEmail(token: String) {
         val currentState = _state.value
-        val listingId = currentState.listingId ?: return Result.failure(Exception("Listing ID not found"))
+        val listingId = currentState.listingId?.toString() ?: return
         val email = currentState.draft.emailAddress
 
-        updateState { copy(loading = true, error = null) }
+        emailViewModel.validateEmail(listingId, email, token)
+    }
 
-        val result = repository.validateClassifiedEmail(listingId, email, token)
+    fun resetEmailValidationState() {
+        emailViewModel.resetValidationState()
+    }
 
-        result.onSuccess {
-            updateState {
-                copy(
-                    loading = false,
-                    emailValidated = true
-                )
-            }
-        }.onFailure { exception ->
-            updateState {
-                copy(
-                    loading = false,
-                    error = exception.message
-                )
-            }
-        }
-
-        return result
+    fun clearEmailError() {
+        emailViewModel.clearError()
     }
 
     fun startPaymentFlow(
@@ -169,7 +173,7 @@ class ClassifiedWizardViewModel(
                 cycleType = "MONTHLY"
             )
         )
-
+        log.d("Processing payment for classified ad: $payment.listingId")
         val result = repository.processClassifiedPayment(payment)
 
         result.onSuccess { response ->

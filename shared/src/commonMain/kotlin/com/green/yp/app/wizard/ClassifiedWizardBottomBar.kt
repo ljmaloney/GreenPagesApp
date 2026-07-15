@@ -22,6 +22,8 @@ import com.green.yp.app.ui.theme.LightLightGold
 
 @Composable
 fun ClassifiedWizardBottomBar(
+    backButtonText: String = "<< Back",
+    nextButtonText: String = "Next >>",
     onBack: () -> Unit,
     onNext: () -> Unit,
     onPreview: () -> Unit,
@@ -46,7 +48,7 @@ fun ClassifiedWizardBottomBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Back Button - Hidden on first step
-            if (currentStep > 0) {
+            if (currentStep >= 0) { // Changed to >= 0 to allow showing even on first step if needed, or keeping specifyable logic
                 OutlinedButton(
                     onClick = onBack,
                     enabled = !isLoading && isBackEnabled,
@@ -55,7 +57,7 @@ fun ClassifiedWizardBottomBar(
                         brush = SolidColor(DarkGreen)
                     )
                 ) {
-                    Text("<< Back")
+                    Text(backButtonText)
                 }
             }
 
@@ -73,7 +75,7 @@ fun ClassifiedWizardBottomBar(
                             color = DarkGreen
                         )
                     } else {
-                        Text("Next >>")
+                        Text(nextButtonText)
                     }
                 }
             } else {
@@ -82,7 +84,7 @@ fun ClassifiedWizardBottomBar(
                     enabled = !isLoading && isNextEnabled,
                     colors = ButtonDefaults.buttonColors(containerColor = DarkGold)
                 ) {
-                    Text("Preview Ad")
+                    Text(nextButtonText)
                 }
             }
         }

@@ -37,11 +37,16 @@ fun EmailValidationComponent(
     onValidate: (code: String) -> Unit,
     modifier: Modifier = Modifier,
     headerText: String = "Validate Email Address",
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    error: String? = null,
+    isValidated: Boolean = false,
+    onClearError: () -> Unit = {},
+    onDismissSuccess: () -> Unit = {}
 ) {
     var code by remember { mutableStateOf("") }
     val focusRequesters = remember { List(8) { FocusRequester() } }
     val focusManager = LocalFocusManager.current
+    var showSuccessMessage by remember(isValidated) { mutableStateOf(isValidated) }
 
     LaunchedEffect(Unit) {
         focusRequesters[0].requestFocus()
@@ -53,26 +58,60 @@ fun EmailValidationComponent(
             .then(modifier)
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // ... (Header and Helper text remain the same)
-        Text(
-            text = headerText,
-            style = MaterialTheme.typography.titleLarge,
-            color = DarkGreen,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
-        )
+        if (error != null) {
+            AlertBanner(
+                alerts = listOf(
+                    AlertBannerItem(
+                        id = "email-validation-error",
+                        title = "Validation Error",
+                        message = error,
+                        type = AlertType.ERROR
+                    )
+                ),
+                onDismiss = { onClearError() }
+            )
+        }
 
-        Text(
-            text = "To confirm your email address is working, please check your email and enter the validation token below. Make sure to add greenyp.com to your list of approved senders.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp)
-        )
+        if (showSuccessMessage) {
+            AlertBanner(
+                alerts = listOf(
+                    AlertBannerItem(
+                        id = "email-validation-success",
+                        title = "Email Verified",
+                        message = "Thanks for taking the time to verify your email address",
+                        type = AlertType.INFO
+                    )
+                ),
+                onDismiss = {
+                    showSuccessMessage = false
+                    onDismissSuccess()
+                }
+            )
+        }
+
+        // Header and Helper text
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = headerText,
+                style = MaterialTheme.typography.titleLarge,
+                color = DarkGreen,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "To confirm your email address is working, please check your email and enter the validation token below. Make sure to add greenyp.com to your list of approved senders.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+            )
+        }
 
         // OTP Input Fields
         Row(

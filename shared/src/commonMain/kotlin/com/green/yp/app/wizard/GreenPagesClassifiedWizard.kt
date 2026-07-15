@@ -39,9 +39,9 @@ import com.green.yp.app.components.WizardProgressIndicator
 import com.green.yp.app.components.WizardStep
 import com.green.yp.app.media.ImagePicker
 import com.green.yp.app.media.LocalImagePicker
+import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
-import com.green.yp.app.shared.viewmodel.EmailContactViewModel
 import com.green.yp.app.shared.viewmodel.ReferenceViewModel
 import com.green.yp.app.shared.viewmodel.SearchViewModel
 import com.green.yp.app.ui.theme.DarkGreen
@@ -65,7 +65,6 @@ fun GreenPagesClassifiedWizard(
     classifiedReferenceViewModel: ClassifiedReferenceViewModel = koinViewModel(),
     referenceViewModel: ReferenceViewModel = koinViewModel(),
     classifiedViewModel: ClassifiedViewModel = koinViewModel(),
-    emailContactViewModel: EmailContactViewModel = koinViewModel(),
     wizardViewModel: ClassifiedWizardViewModel = koinViewModel<ClassifiedWizardViewModel>(),
     imagePicker: ImagePicker? = null,
     onBackClick: () -> Unit = {},
@@ -74,9 +73,6 @@ fun GreenPagesClassifiedWizard(
     val log = Logger.withTag("green.yp.app.wizard.GreenPagesClassifiedWizard")
     val scope = rememberCoroutineScope()
     val state by wizardViewModel.state.collectAsState()
-    val emailLoading by emailContactViewModel.isLoading.collectAsState()
-    val emailError by emailContactViewModel.errorMessage.collectAsState()
-    val emailValidated by emailContactViewModel.isValidated.collectAsState()
     
     val providedImagePicker = imagePicker ?: LocalImagePicker.current
     
@@ -132,7 +128,29 @@ fun GreenPagesClassifiedWizard(
             }
         },
         bottomBar = {
-            if (state.currentStep != ClassifiedWizardStep.PAYMENT) {
+            if ( state.currentStep == ClassifiedWizardStep.PREVIEW ){
+                val adType = classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == state.draft.adType }
+                val price = (adType?.monthlyPrice ?: 0.0) * 100 // Convert to cents
+
+                ClassifiedWizardBottomBar(
+                    backButtonText = "Cancel Ad",
+                    nextButtonText = "Place Ad",
+                    onBack = { onNavigateHome(0) },
+                    onNext = { },
+                    onPreview = {
+                        wizardViewModel.startPaymentFlow(
+                            amount = price.toLong(),
+                            currency = "USD",
+                            emailValidationToken = validationCode
+                        )
+                    },
+                    currentStep = wizardSteps.size - 1,
+                    totalSteps = wizardSteps.size,
+                    isLoading = state.loading,
+                    viewModel = wizardViewModel
+                )
+            }
+            else if (state.currentStep != ClassifiedWizardStep.PAYMENT) {
                 val currentStepIndex = wizardSteps.indexOfFirst { it.title.uppercase().replace(" ", "_") == state.currentStep.name }
                     .takeIf { it >= 0 } ?: 0
                 if (currentStepIndex < wizardSteps.size - 1) {
@@ -152,7 +170,7 @@ fun GreenPagesClassifiedWizard(
                             onNext = {
                                 log.d("onNext called")
                                 // If we are on Email Validation step, only allow Next if email is validated
-                                if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !emailValidated) {
+                                if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION && !state.emailValidated) {
                                     return@ClassifiedWizardBottomBar
                                 }
 
@@ -181,8 +199,8 @@ fun GreenPagesClassifiedWizard(
                             onPreview = { },
                             currentStep = currentStepIndex,
                             totalSteps = wizardSteps.size,
-                            isLoading = state.loading || emailLoading,
-                            isNextEnabled = if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION) emailValidated else true,
+                            isLoading = state.loading,
+                            isNextEnabled = if (state.currentStep == ClassifiedWizardStep.EMAIL_VALIDATION) state.emailValidated else true,
                             isBackEnabled = true,
                             viewModel = wizardViewModel
                         )
@@ -228,58 +246,23 @@ fun GreenPagesClassifiedWizard(
                     }
 
                     ClassifiedWizardStep.EMAIL_VALIDATION -> {
-                        var showSuccessMessage by remember(emailValidated) { mutableStateOf(emailValidated) }
-                        
                         // Reset validation state when entering this step for the first time
                         LaunchedEffect(Unit) {
-                            if (!emailValidated) {
-                                emailContactViewModel.resetValidationState()
+                            if (!state.emailValidated) {
+                                wizardViewModel.resetEmailValidationState()
                             }
                         }
 
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            emailError?.let { error ->
-                                AlertBanner(
-                                    alerts = listOf(
-                                        AlertBannerItem(
-                                            id = "email-validation-error",
-                                            title = "Validation Error",
-                                            message = error,
-                                            type = AlertType.ERROR
-                                        )
-                                    ),
-                                    onDismiss = { emailContactViewModel.clearError() }
-                                )
-                            }
-
-                            if (showSuccessMessage) {
-                                AlertBanner(
-                                    alerts = listOf(
-                                        AlertBannerItem(
-                                            id = "email-validation-success",
-                                            title = "Email Verified",
-                                            message = "Thanks for taking the time to verify your email address",
-                                            type = AlertType.INFO
-                                        )
-                                    ),
-                                    onDismiss = { showSuccessMessage = false }
-                                )
-                            }
-
-                            EmailValidationComponent(
-                                isLoading = emailLoading,
-                                onValidate = { code ->
-                                    validationCode = code
-                                    val listingId = state.listingId?.toString() ?: ""
-                                    val email = state.draft.emailAddress
-                                    emailContactViewModel.validateEmail(
-                                        externRef = listingId,
-                                        emailAddress = email,
-                                        token = code
-                                    )
-                                }
-                            )
-                        }
+                        EmailValidationComponent(
+                            isLoading = state.loading,
+                            error = state.error,
+                            isValidated = state.emailValidated,
+                            onValidate = { code ->
+                                validationCode = code
+                                wizardViewModel.validateEmail(code)
+                            },
+                            onClearError = { wizardViewModel.clearEmailError() }
+                        )
                     }
 
                     ClassifiedWizardStep.IMAGES -> {
@@ -314,43 +297,6 @@ fun GreenPagesClassifiedWizard(
                                         referenceViewModel = classifiedReferenceViewModel
                                     )
                                 } ?: Text("Ad data not found", modifier = Modifier.padding(16.dp))
-                            }
-
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Button(
-                                    onClick = {
-                                        val adType = classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == state.draft.adType }
-                                        val price = (adType?.monthlyPrice ?: 0.0) * 100 // Convert to cents
-                                        
-                                        wizardViewModel.startPaymentFlow(
-                                            amount = price.toLong(),
-                                            currency = "USD",
-                                            emailValidationToken = validationCode
-                                        )
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    enabled = !state.loading,
-                                    colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
-                                ) {
-                                    Text("Place Ad", color = Color.White)
-                                }
-
-                                OutlinedButton(
-                                    onClick = { wizardViewModel.previousStep() },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    enabled = !state.loading,
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkGreen),
-                                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                                        brush = SolidColor(DarkGreen)
-                                    )
-                                ) {
-                                    Text("<< Back")
-                                }
                             }
                         }
                     }

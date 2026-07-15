@@ -104,7 +104,8 @@ val appModule = module {
     factory {
         ClassifiedWizardViewModel(
             get<ClassifiedRepository>(),
-            paymentProcessor = get<SquarePaymentProcessor>()
+            get<EmailContactViewModel>(),
+            get<SquarePaymentProcessor>()
         )
     }
 }
