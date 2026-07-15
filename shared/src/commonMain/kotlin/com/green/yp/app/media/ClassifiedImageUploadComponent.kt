@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,13 +16,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.green.yp.app.components.AlertBanner
 import com.green.yp.app.components.AlertBannerItem
 import com.green.yp.app.components.AlertType
@@ -44,7 +45,7 @@ import com.green.yp.app.ui.theme.DarkGreen
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ClassifiedImageUploadComponent(
     classifiedId: Uuid,
@@ -57,23 +58,27 @@ fun ClassifiedImageUploadComponent(
 
     val snackbarHostState = remember { SnackbarHostState() }
     var resetTrigger by remember { mutableStateOf(0) }
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
     var showSuccessAlert by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var selectedImageForSheet by remember { mutableStateOf<ImageResult?>(null) }
 
     LaunchedEffect(isUploadSuccess) {
         if (isUploadSuccess) {
+            // Immediately close the dialog and reset state
+            showDialog = false
+            selectedImageForSheet = null
+            resetTrigger++
+            showSuccessAlert = true
+            
+            // Clear the success state in VM so we don't trigger this again immediately
+            viewModel.clearUploadSuccess()
+
+            // Show snackbar without blocking the UI updates above
             snackbarHostState.showSnackbar(
                 message = "Image uploaded successfully",
                 actionLabel = "Dismiss",
                 withDismissAction = true
             )
-            resetTrigger++
-            showBottomSheet = false
-            showSuccessAlert = true
-            selectedImageForSheet = null
-            viewModel.clearUploadSuccess()
         }
     }
 
@@ -94,12 +99,12 @@ fun ClassifiedImageUploadComponent(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            if (!showBottomSheet) {
+            if (!showDialog) {
                 Button(
                     onClick = {
                         imagePicker.pickImage { result ->
                             selectedImageForSheet = result
-                            showBottomSheet = true
+                            showDialog = true
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -115,34 +120,41 @@ fun ClassifiedImageUploadComponent(
                 }
             }
 
-            if (showBottomSheet) {
-                ModalBottomSheet(
+            if (showDialog) {
+                Dialog(
                     onDismissRequest = {
-                        showBottomSheet = false
+                        showDialog = false
                         selectedImageForSheet = null
                     },
-                    sheetState = sheetState
-                ) {
-                    ClassifiedImageUploadComponentContent(
-                        isLoading = isLoading,
-                        errorMessage = errorMessage,
-                        showSuccessAlert = false,
-                        onDismissSuccessAlert = {},
-                        resetTrigger = resetTrigger,
-                        initialImage = selectedImageForSheet,
-                        onUpload = { image, fileName, description ->
-                            println("DEBUG: onUpload triggered in UI")
-                            viewModel.uploadImage(
-                                ClassifiedImageUpload(
-                                    classifiedId = classifiedId,
-                                    bytes = image.bytes,
-                                    fileName = fileName,
-                                    contentType = image.contentType,
-                                    description = description
-                                )
-                            )
-                        }
+                    properties = DialogProperties(
+                        usePlatformDefaultWidth = false // Allows full-screen
                     )
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.White
+                    ) {
+                        ClassifiedImageUploadComponentContent(
+                            isLoading = isLoading,
+                            errorMessage = errorMessage,
+                            showSuccessAlert = false,
+                            onDismissSuccessAlert = {},
+                            resetTrigger = resetTrigger,
+                            initialImage = selectedImageForSheet,
+                            onUpload = { image, fileName, description ->
+                                println("DEBUG: onUpload triggered in UI")
+                                viewModel.uploadImage(
+                                    ClassifiedImageUpload(
+                                        classifiedId = classifiedId,
+                                        bytes = image.bytes,
+                                        fileName = fileName,
+                                        contentType = image.contentType,
+                                        description = description
+                                    )
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }

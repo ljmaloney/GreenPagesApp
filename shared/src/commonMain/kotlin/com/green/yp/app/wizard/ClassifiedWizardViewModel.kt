@@ -194,7 +194,7 @@ class ClassifiedWizardViewModel(
                 copy(
                     loading = false,
                     paymentResponse = response,
-                    currentStep = ClassifiedWizardStep.PAYMENT
+                    currentStep = ClassifiedWizardStep.PAYMENT_SUCCESS
                 )
             }
         }.onFailure { exception ->
