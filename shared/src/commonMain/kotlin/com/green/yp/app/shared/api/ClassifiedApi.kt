@@ -21,13 +21,6 @@ interface ClassifiedApi {
     @POST("classified/create-ad")
     suspend fun createClassifiedAd(@Body request: ClassifiedRequest): ResponseWrapper<ClassifiedResponse>
 
-//    @POST("classified/{classifiedId}/validate")
-//    suspend fun validateClassifiedEmail(
-//        @Path("classifiedId") classifiedId: Uuid,
-//        @Query("emailAddress") emailAddress: String,
-//        @Query("token") token: String
-//    ): ResponseWrapper<Unit?>
-
     @POST("classified/payment")
     suspend fun processClassifiedPayment(@Body request: ClassifiedPayment): ResponseWrapper<ClassifiedPaymentResponse>
 

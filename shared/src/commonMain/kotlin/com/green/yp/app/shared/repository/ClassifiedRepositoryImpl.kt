@@ -78,44 +78,6 @@ class ClassifiedRepositoryImpl(private val classifiedApi: ClassifiedApi) : Class
         }
     }
 
-//    override suspend fun validateClassifiedEmail(
-//        classifiedId: Uuid,
-//        emailAddress: String,
-//        token: String
-//    ): Result<Unit> {
-//        _isLoading.value = true
-//        _errorMessage.value = null
-//        _isValidated.value = false
-//
-//        return runCatching {
-//            // Trim and lowercase email, and trim token to ensure exact match with server records
-//            val result = classifiedApi.validateClassifiedEmail(
-//                classifiedId,
-//                emailAddress.trim().lowercase(),
-//                token.trim()
-//            )
-//
-//            result.errorMessageApi?.let { error ->
-//                _errorMessage.value = error.displayMessage
-//                throw IllegalStateException(error.displayMessage)
-//            }
-//
-//            _isValidated.value = true
-//            _errorMessage.value = null
-//            Unit
-//        }.onFailure { throwable ->
-//            val message = when (throwable) {
-//                is ClientRequestException -> "Client error: ${throwable.response.status.value}"
-//                is ServerResponseException -> "Server error: ${throwable.response.status.value}"
-//                is ResponseException -> "Network error: ${throwable.response.status.value}"
-//                else -> throwable.message ?: "Unknown error"
-//            }
-//            _errorMessage.value = message
-//        }.also {
-//            _isLoading.value = false
-//        }
-//    }
-
     override suspend fun uploadImage(
         request: ClassifiedImageUpload
     ): Result<Unit> {

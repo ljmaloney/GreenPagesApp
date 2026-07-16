@@ -18,7 +18,6 @@ interface ClassifiedRepository {
     val imageGallery: StateFlow<List<ImageGallery>>
 
     suspend fun createClassifiedAd(request: ClassifiedRequest): Result<ClassifiedResponse>
-//    suspend fun validateClassifiedEmail(classifiedId: Uuid, emailAddress: String, token: String): Result<Unit>
     suspend fun processClassifiedPayment(payment: ClassifiedPayment): Result<ClassifiedPaymentResponse>
     suspend fun uploadImage(request: ClassifiedImageUpload): Result<Unit>
     suspend fun getClassifiedImageGallery(classifiedId: Uuid): Result<List<ImageGallery>>

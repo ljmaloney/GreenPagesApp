@@ -33,13 +33,6 @@ class ClassifiedViewModel(private val repository: ClassifiedRepository) : ViewMo
         }
     }
 
-    @OptIn(ExperimentalUuidApi::class)
-    fun validateClassifiedEmail(classifiedId: Uuid, emailAddress: String, token: String) {
-        viewModelScope.launch {
-            repository.validateClassifiedEmail(classifiedId, emailAddress, token)
-        }
-    }
-
     fun processClassifiedPayment(payment: ClassifiedPayment) {
         viewModelScope.launch {
             repository.processClassifiedPayment(payment)
