@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -28,15 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
-import com.green.yp.app.ui.theme.DarkGreen
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @Composable
-fun PaymentSuccess(
+fun PaymentFailed(
     response: ClassifiedPaymentResponse,
-    modifier: Modifier = Modifier,
-    classifiedResponse: ClassifiedPaymentResponse? = null
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
@@ -48,21 +44,21 @@ fun PaymentSuccess(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Icon(
-            imageVector = Icons.Default.CheckCircle,
-            contentDescription = "Success",
+            imageVector = Icons.Default.Error,
+            contentDescription = "Failure",
             modifier = Modifier.size(80.dp),
-            tint = DarkGreen
+            tint = MaterialTheme.colorScheme.error
         )
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Payment Successful!",
+                text = "Payment Failed",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = DarkGreen
+                color = MaterialTheme.colorScheme.error
             )
             Text(
-                text = "Your classified ad has been placed.",
+                text = "Your payment could not be processed.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray
             )
@@ -78,18 +74,19 @@ fun PaymentSuccess(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Order Details",
+                    text = "Error Details",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 HorizontalDivider()
 
-                SuccessRow(label = "Ad Title", value = response.classifiedTitle)
-                SuccessRow(label = "Order Ref", value = response.orderRef)
-                SuccessRow(label = "Payment Ref", value = response.paymentRef)
-                SuccessRow(label = "Receipt #", value = response.receiptNumber)
-                SuccessRow(label = "Status", value = response.paymentStatus)
+                FailedRow(label = "Ad Title", value = response.classifiedTitle)
+                FailedRow(label = "Order Ref", value = response.orderRef)
+                FailedRow(label = "Payment Ref", value = response.paymentRef)
+                FailedRow(label = "Status", value = response.paymentStatus)
+                FailedRow(label = "Error Code", value = response.errorStatusCode)
+                FailedRow(label = "Error Message", value = response.errorDetail)
             }
         }
     }
@@ -98,26 +95,25 @@ fun PaymentSuccess(
 @OptIn(ExperimentalUuidApi::class)
 @Preview
 @Composable
-fun PaymentSuccessPreview() {
+fun PaymentFailedPreview() {
     val mockResponse = ClassifiedPaymentResponse(
         classifiedId = Uuid.random(),
         classifiedTitle = "Premium Garden Soil Ad",
-        paymentStatus = "COMPLETED",
+        paymentStatus = "FAILED",
         paymentRef = "PAY-67890",
         orderRef = "ORD-12345",
-        receiptNumber = "RCPT-001",
-        errorStatusCode = "200",
-        errorDetail = "None"
+        receiptNumber = "",
+        errorStatusCode = "402",
+        errorDetail = "Card declined"
     )
+
     MaterialTheme {
-        PaymentSuccess(
-            response = mockResponse
-        )
+        PaymentFailed(response = mockResponse)
     }
 }
 
 @Composable
-private fun SuccessRow(label: String, value: String) {
+private fun FailedRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween

@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -33,14 +33,13 @@ import com.green.yp.app.media.ImagePicker
 import com.green.yp.app.media.LocalImagePicker
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
-import com.green.yp.app.shared.viewmodel.ReferenceViewModel
-import com.green.yp.app.shared.viewmodel.SearchViewModel
 import com.green.yp.app.ui.theme.LightLightGold
 import com.green.yp.app.wizard.components.AdDetails
 import com.green.yp.app.wizard.components.AdLocation
 import com.green.yp.app.wizard.components.ClassifiedAdSelector
 import com.green.yp.app.wizard.components.ClassifiedPreview
 import com.green.yp.app.wizard.components.ContactInformation
+import com.green.yp.app.wizard.components.PaymentFailed
 import com.green.yp.app.wizard.components.PaymentSuccess
 import com.green.yp.app.wizard.components.UploadImages
 import kotlinx.coroutines.launch
@@ -60,11 +59,9 @@ fun GreenPagesClassifiedWizard(
     val log = Logger.withTag("green.yp.app.wizard.GreenPagesClassifiedWizard")
     val scope = rememberCoroutineScope()
     val state by wizardViewModel.state.collectAsState()
-    
+
     val providedImagePicker = imagePicker ?: LocalImagePicker.current
-    
-    val scrollState = rememberScrollState()
-    
+
     // Local state to store validation code for later use in payment
     var validationCode by remember { mutableStateOf("") }
     
@@ -103,7 +100,8 @@ fun GreenPagesClassifiedWizard(
                     onSearchClick = { onNavigateHome(1) },
                     onLogoClick = { onNavigateHome(0) }
                 )
-                if (state.currentStep != ClassifiedWizardStep.PAYMENT) {
+                if (state.currentStep != ClassifiedWizardStep.PAYMENT
+                    && state.currentStep != ClassifiedWizardStep.PAYMENT_SUCCESS) {
                     Spacer(modifier = Modifier.height(16.dp))
                     WizardProgressIndicator(
                         steps = wizardSteps,
@@ -139,6 +137,18 @@ fun GreenPagesClassifiedWizard(
                 ClassifiedWizardBottomBar(
                     backButtonText = "Return Home",
                     nextButtonText = "Place Another Ad",
+                    onBack = { onNavigateHome(0) },
+                    onNext = { wizardViewModel.resetWizard() },
+                    currentStep = wizardSteps.size - 1,
+                    totalSteps = wizardSteps.size,
+                    isLoading = false,
+                    viewModel = wizardViewModel
+                )
+            }
+            else if ( state.currentStep == ClassifiedWizardStep.PAYMENT_FAILED){
+                ClassifiedWizardBottomBar(
+                    backButtonText = "Return Home",
+                    nextButtonText = "Try Again",
                     onBack = { onNavigateHome(0) },
                     onNext = { wizardViewModel.resetWizard() },
                     currentStep = wizardSteps.size - 1,
@@ -283,7 +293,9 @@ fun GreenPagesClassifiedWizard(
                         }
                     }
                     ClassifiedWizardStep.PAYMENT -> {
-                        Text("Payment in progress...", modifier = Modifier.padding(16.dp))
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                        }
                     }
                     ClassifiedWizardStep.PAYMENT_SUCCESS -> {
                         state.paymentResponse?.let { response ->
@@ -291,6 +303,13 @@ fun GreenPagesClassifiedWizard(
                                 response = response
                             )
                         } ?: Text("Payment processing...", modifier = Modifier.padding(16.dp))
+                    }
+                    ClassifiedWizardStep.PAYMENT_FAILED -> {
+                        state.paymentResponse?.let { response ->
+                            PaymentFailed(
+                                response = response
+                            )
+                        } ?: Text("Payment failed...", modifier = Modifier.padding(16.dp))
                     }
             }
         }

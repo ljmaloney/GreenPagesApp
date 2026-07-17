@@ -149,6 +149,13 @@ class ClassifiedWizardViewModel(
             log.d("Payment result: $result")
             when (result) {
                 is PaymentResult.Success -> {
+                    updateState {
+                        copy(
+                            currentStep = ClassifiedWizardStep.PAYMENT,
+                            loading = true,
+                            error = null
+                        )
+                    }
                     viewModelScope.launch {
                         processPayment(result.token, emailValidationToken)
                     }
@@ -202,7 +209,8 @@ class ClassifiedWizardViewModel(
             updateState {
                 copy(
                     loading = false,
-                    error = exception.message
+                    error = exception.message,
+                    currentStep = ClassifiedWizardStep.PAYMENT_FAILED
                 )
             }
         }
@@ -252,7 +260,8 @@ class ClassifiedWizardViewModel(
                         loading = false,
                         listingId = classified.classifiedId,
                         currentStep =
-                            ClassifiedWizardStep.EMAIL_VALIDATION
+                            ClassifiedWizardStep.EMAIL_VALIDATION,
+                        classifiedResponse = classified
                     )
                 }
             }.onFailure { exception ->
