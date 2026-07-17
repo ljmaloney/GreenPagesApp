@@ -113,7 +113,7 @@ fun PaymentFailedPreview() {
 }
 
 @Composable
-private fun FailedRow(label: String, value: String) {
+private fun FailedRow(label: String, value: String?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -124,7 +124,7 @@ private fun FailedRow(label: String, value: String) {
             color = Color.Gray
         )
         Text(
-            text = value,
+            text = value ?: "N/A",
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium
         )

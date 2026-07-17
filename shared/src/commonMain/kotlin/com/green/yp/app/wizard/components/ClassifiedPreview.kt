@@ -40,6 +40,7 @@ import com.green.yp.app.shared.dto.classified.ImageGallery
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.utils.formatCurrency
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -147,7 +148,7 @@ fun ClassifiedPreviewContent(
                     )
 
                     Text(
-                        text = "$${classified.price} ${classified.perUnitType}",
+                        text = "$${classified.price.formatCurrency()} ${classified.perUnitType}",
                         style = MaterialTheme.typography.titleLarge,
                         color = DarkGreen,
                         fontWeight = FontWeight.Bold

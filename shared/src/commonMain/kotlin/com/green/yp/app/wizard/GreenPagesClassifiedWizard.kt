@@ -300,7 +300,9 @@ fun GreenPagesClassifiedWizard(
                     ClassifiedWizardStep.PAYMENT_SUCCESS -> {
                         state.paymentResponse?.let { response ->
                             PaymentSuccess(
-                                response = response
+                                response = response,
+                                classifiedResponse = state.classifiedResponse,
+                                referenceViewModel = classifiedReferenceViewModel
                             )
                         } ?: Text("Payment processing...", modifier = Modifier.padding(16.dp))
                     }

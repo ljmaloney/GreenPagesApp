@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -28,7 +30,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.shared.dto.classified.ClassifiedPaymentResponse
+import com.green.yp.app.shared.dto.classified.ClassifiedResponse
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.utils.formatCurrency
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -36,8 +41,15 @@ import kotlin.uuid.Uuid
 fun PaymentSuccess(
     response: ClassifiedPaymentResponse,
     modifier: Modifier = Modifier,
-    classifiedResponse: ClassifiedPaymentResponse? = null
+    classifiedResponse: ClassifiedResponse? = null,
+    referenceViewModel: ClassifiedReferenceViewModel? = null
 ) {
+    val adType = classifiedResponse?.adTypeId?.let { id ->
+        referenceViewModel?.getAdTypeById(id)
+    }
+    val adTypeName = adType?.adTypeName
+    val adCost = adType?.monthlyPrice?.let { "$${it.formatCurrency()}" }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -61,8 +73,18 @@ fun PaymentSuccess(
                 fontWeight = FontWeight.Bold,
                 color = DarkGreen
             )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Your classified ad has been placed.",
+                text = "Thanks for placing your classified ad with us. " +
+                        "Below you will find details about your payment.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Please remember to add our domain greenyp.com to your " +
+                        "list of approved senders. You should receive a confirmation " +
+                        "email within the next few minutes.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray
             )
@@ -86,6 +108,8 @@ fun PaymentSuccess(
                 HorizontalDivider()
 
                 SuccessRow(label = "Ad Title", value = response.classifiedTitle)
+                adTypeName?.let { SuccessRow(label = "Ad Type", value = it) }
+                adCost?.let { SuccessRow(label = "Ad Cost", value = it) }
                 SuccessRow(label = "Order Ref", value = response.orderRef)
                 SuccessRow(label = "Payment Ref", value = response.paymentRef)
                 SuccessRow(label = "Receipt #", value = response.receiptNumber)

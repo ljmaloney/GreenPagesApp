@@ -198,11 +198,20 @@ class ClassifiedWizardViewModel(
         val result = repository.processClassifiedPayment(payment)
 
         result.onSuccess { response ->
+            if ( response.paymentStatus == "SUCCESS" ){
+                updateState {
+                    copy(
+                        loading = false,
+                        paymentResponse = response,
+                        currentStep = ClassifiedWizardStep.PAYMENT_SUCCESS
+                    )
+                }
+            }
             updateState {
                 copy(
                     loading = false,
                     paymentResponse = response,
-                    currentStep = ClassifiedWizardStep.PAYMENT_SUCCESS
+                    currentStep = ClassifiedWizardStep.PAYMENT_FAILED
                 )
             }
         }.onFailure { exception ->
