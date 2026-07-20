@@ -1,4 +1,4 @@
-package com.green.yp.app.components.otp
+package com.green.yp.app.components.generated.components.otptextfield
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -39,10 +39,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.green.yp.app.ui.theme.AppTheme
-//import com.nomanr.lumo.ui.AppTheme
+import com.green.yp.app.components.generated.AppTheme
+import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.min
 
 @Composable

@@ -1,4 +1,4 @@
-package com.green.yp.app.components.otp
+package com.green.yp.app.components.generated.components.otptextfield
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -28,7 +28,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.green.yp.app.ui.theme.AppTheme
+import com.green.yp.app.components.generated.AppTheme
 
 enum class OTPTextFieldType {
     Outlined,

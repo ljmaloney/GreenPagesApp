@@ -1,4 +1,4 @@
-package com.green.yp.app.components
+package com.green.yp.app.components.view
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,40 +43,24 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.green.yp.app.components.view.ClassifiedView
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
 
-/**
- * A search result component using a Lumo-style card as the base.
- * Displays key information from a [SearchResponseDTO].
- */
 @Composable
-fun MarketResultView(
+fun ClassifiedView(
     result: SearchResponseDTO,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
-    if (result.recordType == SearchRecordType.CLASSIFIED) {
-        ClassifiedView(
-            result = result,
-            modifier = modifier,
-            onClick = onClick
-        )
-        return
-    }
-
     val uriHandler = LocalUriHandler.current
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp) // Increased vertical padding to accommodate overlapping badge
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        // We use OutlinedCard as the base for the "Lumo" look, 
-        // styled with the app's DarkGreen and DarkGold theme.
         OutlinedCard(
             onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
@@ -102,7 +85,6 @@ fun MarketResultView(
                         modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Business Icon
                         if (!result.businessIconUrl.isNullOrBlank()) {
                             AsyncImage(
                                 model = result.businessIconUrl,
@@ -131,8 +113,7 @@ fun MarketResultView(
                             }
                         }
                     }
-                    
-                    // Distance badge
+
                     Surface(
                         color = DarkGold.copy(alpha = 0.1f),
                         shape = MaterialTheme.shapes.small
@@ -149,20 +130,14 @@ fun MarketResultView(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val isFullAddressShown = result.recordType in listOf(
-                    SearchRecordType.GREEN_PRO,
-                    SearchRecordType.GREEN_PRO_SERVICE,
-                    SearchRecordType.GREEN_PRO_PRODUCT
-                )
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top // Align to top so icon/website stay with first line
+                    verticalAlignment = Alignment.Top
                 ) {
                     Row(
                         modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.Top // Align icon with top line of text
+                        verticalAlignment = Alignment.Top
                     ) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
@@ -170,49 +145,20 @@ fun MarketResultView(
                             tint = DarkGreen,
                             modifier = Modifier
                                 .size(16.dp)
-                                .padding(top = 2.dp) // Slight offset to center with first line of text
+                                .padding(top = 2.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        
-                        Column {
-                            Text(
-                                text = if (isFullAddressShown) {
-                                    listOfNotNull(
-                                        result.addressLine1?.takeIf { it.isNotBlank() },
-                                        result.addressLine2?.takeIf { it.isNotBlank() },
-                                        "${result.city}, ${result.state} ${result.postalCode}"
-                                    ).joinToString("\n")
-                                } else {
-                                    "${result.city}, ${result.state}"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.DarkGray
-                            )
 
-                            if (isFullAddressShown && !result.phoneNumber.isNullOrBlank()) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Phone,
-                                        contentDescription = null,
-                                        tint = DarkGreen,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = result.phoneNumber,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.DarkGray
-                                    )
-                                }
-                            }
-                        }
+                        Text(
+                            text = "${result.city}, ${result.state}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.DarkGray
+                        )
                     }
 
-                    // Website Link - Now stays at the top level
                     if (!result.businessUrl.isNullOrBlank()) {
                         TextButton(
-                            onClick = { 
+                            onClick = {
                                 try {
                                     uriHandler.openUri(result.businessUrl)
                                 } catch (_: Exception) {
@@ -222,7 +168,7 @@ fun MarketResultView(
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                             modifier = Modifier
                                 .height(32.dp)
-                                .offset(y = (-6).dp) // Nudge up to better align with first line of text
+                                .offset(y = (-6).dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Language,
@@ -246,7 +192,7 @@ fun MarketResultView(
                     var isTextTruncated by remember { mutableStateOf(false) }
 
                     Spacer(modifier = Modifier.height(8.dp))
-                    
+
                     Column(modifier = Modifier.animateContentSize()) {
                         Text(
                             text = result.description,
@@ -277,15 +223,14 @@ fun MarketResultView(
             }
         }
 
-        // Category Badge - Positioned to overlap the top border
         result.categoryName?.let { category ->
             Surface(
                 color = DarkGreen,
                 shape = RoundedCornerShape(4.dp),
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(end = 24.dp) // Move over to the left
-                    .offset(y = (-10).dp) // Move up so border intersects the middle
+                    .padding(end = 24.dp)
+                    .offset(y = (-10).dp)
             ) {
                 Text(
                     text = category.uppercase(),
@@ -301,17 +246,17 @@ fun MarketResultView(
 
 @Preview
 @Composable
-fun MarketResultViewPreview() {
-    val sampleResult = SearchResponseDTO(
+fun ClassifiedViewPreview() {
+    val sampleClassified = SearchResponseDTO(
         externId = "1",
         producerId = "p1",
         locationId = "l1",
         categoryRef = "cat1",
         categoryName = "Gardening",
-        recordType = SearchRecordType.GREEN_PRO,
+        recordType = SearchRecordType.CLASSIFIED,
         active = true,
-        title = "Sustainable Landscaping Services",
-        businessName = "Green Thumb Solutions",
+        title = "Gently used lawnmower",
+        businessName = "Used Garden Tools",
         businessUrl = "https://example.com",
         businessIconUrl = "https://via.placeholder.com/150",
         city = "Portland",
@@ -321,36 +266,12 @@ fun MarketResultViewPreview() {
         addressLine2 = "Suite 400",
         distance = 2.5,
         phoneNumber = "(503) 555-0123",
-        description = "We provide eco-friendly landscaping and garden design services focused on native plants and water conservation.",
+        description = "Great condition electric lawnmower with recently replaced battery. Pickup only.",
         longitude = 0.0,
         latitude = 0.0
     )
 
     MaterialTheme {
-        Column {
-            Text("GREEN_PRO", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 16.dp, top = 8.dp))
-            MarketResultView(result = sampleResult)
-
-            Text("CLASSIFIED", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 16.dp, top = 8.dp))
-            MarketResultView(result = sampleResult.copy(
-                recordType = SearchRecordType.CLASSIFIED,
-                businessName = "Used Garden Tools",
-                title = "Gently used lawnmower"
-            ))
-
-            Text("GREEN_PRO_SERVICE", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 16.dp, top = 8.dp))
-            MarketResultView(result = sampleResult.copy(
-                recordType = SearchRecordType.GREEN_PRO_SERVICE,
-                businessName = "EcoClean Windows",
-                title = "Solar Panel Cleaning"
-            ))
-
-            Text("GREEN_PRO_PRODUCT", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(start = 16.dp, top = 8.dp))
-            MarketResultView(result = sampleResult.copy(
-                recordType = SearchRecordType.GREEN_PRO_PRODUCT,
-                businessName = "Organic Seeds Co.",
-                title = "Heirloom Tomato Seeds"
-            ))
-        }
+        ClassifiedView(result = sampleClassified)
     }
 }
