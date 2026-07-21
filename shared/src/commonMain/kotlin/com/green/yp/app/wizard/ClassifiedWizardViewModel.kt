@@ -198,7 +198,7 @@ class ClassifiedWizardViewModel(
         val result = repository.processClassifiedPayment(payment)
 
         result.onSuccess { response ->
-            if ( response.paymentStatus == "SUCCESS" ){
+            if ( response.paymentStatus == "SUCCESS" || response.paymentStatus == "COMPLETED"){
                 updateState {
                     copy(
                         loading = false,

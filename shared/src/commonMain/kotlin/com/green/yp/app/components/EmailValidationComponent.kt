@@ -17,6 +17,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.components.generated.components.otptextfield.OTPTextField
@@ -114,6 +116,7 @@ fun EmailValidationComponent(
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
             state = otpState,
+            textStyle = TextStyle(fontSize = 28.sp),
             colors = otpColors,
             isError = error != null,
             onComplete = {}

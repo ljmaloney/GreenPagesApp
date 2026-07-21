@@ -101,6 +101,7 @@ fun GreenPagesClassifiedWizard(
                     onLogoClick = { onNavigateHome(0) }
                 )
                 if (state.currentStep != ClassifiedWizardStep.PAYMENT
+                    && state.currentStep != ClassifiedWizardStep.PAYMENT_FAILED
                     && state.currentStep != ClassifiedWizardStep.PAYMENT_SUCCESS) {
                     Spacer(modifier = Modifier.height(16.dp))
                     WizardProgressIndicator(
@@ -146,11 +147,20 @@ fun GreenPagesClassifiedWizard(
                 )
             }
             else if ( state.currentStep == ClassifiedWizardStep.PAYMENT_FAILED){
+                val adType = classifiedReferenceViewModel.adTypes.value.find { it.adTypeId == state.draft.adType }
+                val price = (adType?.monthlyPrice ?: 0.0) * 100 // Convert to cents
+
                 ClassifiedWizardBottomBar(
                     backButtonText = "Return Home",
                     nextButtonText = "Try Again",
                     onBack = { onNavigateHome(0) },
-                    onNext = { wizardViewModel.resetWizard() },
+                    onNext = {
+                        wizardViewModel.startPaymentFlow(
+                            amount = price.toLong(),
+                            currency = "USD",
+                            emailValidationToken = validationCode
+                        )
+                    },
                     currentStep = wizardSteps.size - 1,
                     totalSteps = wizardSteps.size,
                     isLoading = false,
