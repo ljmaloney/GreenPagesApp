@@ -61,7 +61,7 @@ fun MarketResultView(
     onClick: () -> Unit = {}
 ) {
     if (result.recordType == SearchRecordType.CLASSIFIED) {
-        ClassifiedView(
+        ClassifiedView().renderView(
             result = result,
             modifier = modifier,
             onClick = onClick

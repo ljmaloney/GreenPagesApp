@@ -1,6 +1,7 @@
 package com.green.yp.app.components.view
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,10 +15,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,214 +33,197 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.green.yp.app.shared.dto.classified.ImageGallery
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
 
-@Composable
-fun ClassifiedView(
-    result: SearchResponseDTO,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
-) {
-    val uriHandler = LocalUriHandler.current
+fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer {
+    @Composable
+    override fun renderView(result: SearchResponseDTO, modifier: Modifier?, onClick: () -> Unit) {
+        val imageGallery = getImageGallery<ImageGallery>(result)
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        OutlinedCard(
-            onClick = onClick,
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.outlinedCardColors(
-                containerColor = Color.White,
-            ),
-            border = CardDefaults.outlinedCardBorder(enabled = true).copy(
-                brush = androidx.compose.ui.graphics.SolidColor(DarkGreen)
-            )
+        Box(
+            modifier = (modifier ?: Modifier)
+                .background(Color.White)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
+            OutlinedCard(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.outlinedCardColors(
+                    containerColor = Color.White,
+                ),
+                border = CardDefaults.outlinedCardBorder(enabled = true).copy(
+                    brush = androidx.compose.ui.graphics.SolidColor(DarkGreen)
+                )
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
                 ) {
                     Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
                     ) {
-                        if (!result.businessIconUrl.isNullOrBlank()) {
-                            AsyncImage(
-                                model = result.businessIconUrl,
-                                contentDescription = "${result.businessName} logo",
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                        }
-
-                        Column {
-                            Text(
-                                text = result.businessName.orEmpty(),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = DarkGreen,
-                                fontWeight = FontWeight.Bold
-                            )
-                            if (result.title.isNotBlank() && result.title != result.businessName) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
                                 Text(
                                     text = result.title,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Gray
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = DarkGreen,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Surface(
+                            color = DarkGold.copy(alpha = 0.1f),
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                text = "${result.distance.toInt()} mi",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = DarkGold,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = DarkGreen,
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .padding(top = 2.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            Text(
+                                text = "${result.city}, ${result.state}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.DarkGray
+                            )
+                        }
+                    }
+
+                    if (result.imageUrl != null && imageGallery.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(vertical = 4.dp)
+                        ) {
+                            items(imageGallery) { image ->
+                                AsyncImage(
+                                    model = image.url,
+                                    contentDescription = image.description,
+                                    modifier = Modifier
+                                        .width(120.dp)
+                                        .height(80.dp),
+                                    contentScale = ContentScale.Crop
                                 )
                             }
                         }
                     }
 
-                    Surface(
-                        color = DarkGold.copy(alpha = 0.1f),
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Text(
-                            text = "${result.distance.toInt()} mi",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = DarkGold,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                    if (!result.description.isNullOrBlank()) {
+                        var isExpanded by remember { mutableStateOf(false) }
+                        var isTextTruncated by remember { mutableStateOf(false) }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = DarkGreen,
-                            modifier = Modifier
-                                .size(16.dp)
-                                .padding(top = 2.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        Text(
-                            text = "${result.city}, ${result.state}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.DarkGray
-                        )
-                    }
-
-                    if (!result.businessUrl.isNullOrBlank()) {
-                        TextButton(
-                            onClick = {
-                                try {
-                                    uriHandler.openUri(result.businessUrl)
-                                } catch (_: Exception) {
-                                    // Handle invalid URI
-                                }
-                            },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-                            modifier = Modifier
-                                .height(32.dp)
-                                .offset(y = (-6).dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Language,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = DarkGold
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
+                        Column(modifier = Modifier.animateContentSize()) {
                             Text(
-                                text = "Website",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = DarkGold,
-                                textDecoration = TextDecoration.Underline
-                            )
-                        }
-                    }
-                }
-
-                if (!result.description.isNullOrBlank()) {
-                    var isExpanded by remember { mutableStateOf(false) }
-                    var isTextTruncated by remember { mutableStateOf(false) }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Column(modifier = Modifier.animateContentSize()) {
-                        Text(
-                            text = result.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-                            overflow = TextOverflow.Ellipsis,
-                            color = Color.Black,
-                            onTextLayout = { textLayoutResult ->
-                                if (!isExpanded) {
-                                    isTextTruncated = textLayoutResult.hasVisualOverflow
+                                text = result.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = if (isExpanded) Int.MAX_VALUE else 2,
+                                overflow = TextOverflow.Ellipsis,
+                                color = Color.Black,
+                                onTextLayout = { textLayoutResult ->
+                                    if (!isExpanded) {
+                                        isTextTruncated = textLayoutResult.hasVisualOverflow
+                                    }
                                 }
+                            )
+                            if (isTextTruncated && !isExpanded) {
+                                Text(
+                                    text = "(more)",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = DarkGold,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    modifier = Modifier
+                                        .padding(top = 2.dp)
+                                        .clickable { isExpanded = true }
+                                )
                             }
-                        )
-                        if (isTextTruncated && !isExpanded) {
-                            Text(
-                                text = "(more)",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = DarkGold,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier
-                                    .padding(top = 2.dp)
-                                    .clickable { isExpanded = true }
-                            )
                         }
                     }
                 }
             }
-        }
 
-        result.categoryName?.let { category ->
-            Surface(
-                color = DarkGreen,
-                shape = RoundedCornerShape(4.dp),
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 24.dp)
-                    .offset(y = (-10).dp)
-            ) {
-                Text(
-                    text = category.uppercase(),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
+            result.categoryName?.let { category ->
+                Surface(
+                    color = DarkGreen,
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 24.dp)
+                        .offset(y = (-10).dp)
+                ) {
+                    Text(
+                        text = category.uppercase(),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
+    }
+
+    override fun <T> getImageGallery(result: SearchResponseDTO): List<T> {
+        if (result.imageUrl.isNullOrBlank()) {
+            return emptyList()
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return listOf(
+            ImageGallery(
+                imageName = null,
+                description = result.title,
+                url = result.imageUrl
+            )
+        ) as List<T>
     }
 }
 
@@ -258,7 +241,7 @@ fun ClassifiedViewPreview() {
         title = "Gently used lawnmower",
         businessName = "Used Garden Tools",
         businessUrl = "https://example.com",
-        businessIconUrl = "https://via.placeholder.com/150",
+        businessIconUrl = null,
         city = "Portland",
         state = "OR",
         postalCode = "97201",
@@ -272,6 +255,10 @@ fun ClassifiedViewPreview() {
     )
 
     MaterialTheme {
-        ClassifiedView(result = sampleClassified)
+        ClassifiedView().renderView(
+            result = sampleClassified,
+            modifier = Modifier,
+            onClick = {}
+        )
     }
 }
