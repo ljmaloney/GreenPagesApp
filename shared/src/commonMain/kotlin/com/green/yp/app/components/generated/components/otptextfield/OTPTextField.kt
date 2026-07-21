@@ -236,7 +236,7 @@ private fun OTPTextFieldItem(
         enabled = enabled,
         onValueChange = { newValue ->
             when {
-                newValue.isNotEmpty() && newValue.last().isDigit() -> {
+                newValue.isNotEmpty() && newValue.last().isLetterOrDigit() -> {
                     state.onDigitEntered(position, newValue.last())
                 }
 
@@ -267,7 +267,7 @@ private fun OTPTextFieldItem(
                 },
         keyboardOptions =
             KeyboardOptions(
-                keyboardType = KeyboardType.NumberPassword,
+                keyboardType = KeyboardType.Ascii,
             ),
         keyboardActions =
             KeyboardActions(onNext = {
@@ -303,7 +303,7 @@ class OTPState(
     val interactionSources = List(length) { MutableInteractionSource() }
 
     fun onDigitEntered(index: Int, value: Char) {
-        if (index in code.indices && value.isDigit()) {
+        if (index in code.indices && value.isLetterOrDigit()) {
             val chars = code.toCharArray()
             chars[index] = value
             code = chars.concatToString()
