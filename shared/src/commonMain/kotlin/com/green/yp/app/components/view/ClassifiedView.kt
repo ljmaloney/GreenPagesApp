@@ -182,7 +182,7 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(start = 20.dp)
+                    .offset(x = (-2).dp)
                     .offset(y = (-12).dp)
                     .size(28.dp)
             )
