@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.green.yp.app.components.view.ClassifiedView
+import com.green.yp.app.components.view.ProfessionalProfileView
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
@@ -60,6 +61,15 @@ fun MarketResultView(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
+    if (result.recordType == SearchRecordType.GREEN_PRO) {
+        ProfessionalProfileView().renderView(
+            result = result,
+            modifier = modifier,
+            onClick = onClick
+        )
+        return
+    }
+
     if (result.recordType == SearchRecordType.CLASSIFIED) {
         ClassifiedView().renderView(
             result = result,
