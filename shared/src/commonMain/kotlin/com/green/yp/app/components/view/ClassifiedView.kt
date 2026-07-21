@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,8 +14,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -40,17 +37,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.green.yp.app.shared.dto.classified.ImageGallery
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
+import greenpagesapp.shared.generated.resources.Res
 
 fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer {
     @Composable
     override fun renderView(result: SearchResponseDTO, modifier: Modifier?, onClick: () -> Unit) {
-        val imageGallery = getImageGallery<ImageGallery>(result)
-
         Box(
             modifier = (modifier ?: Modifier)
                 .background(Color.White)
@@ -134,24 +129,16 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                         }
                     }
 
-                    if (result.imageUrl != null && imageGallery.isNotEmpty()) {
+                    if (!result.imageUrl.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(vertical = 4.dp)
-                        ) {
-                            items(imageGallery) { image ->
-                                AsyncImage(
-                                    model = image.url,
-                                    contentDescription = image.description,
-                                    modifier = Modifier
-                                        .width(120.dp)
-                                        .height(80.dp),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        }
+                        AsyncImage(
+                            model = result.imageUrl,
+                            contentDescription = result.title,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp),
+                            contentScale = ContentScale.Crop
+                        )
                     }
 
                     if (!result.description.isNullOrBlank()) {
@@ -190,6 +177,16 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                 }
             }
 
+            AsyncImage(
+                model = Res.getUri("drawable/classifieds_icon_hanging.png"),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 20.dp)
+                    .offset(y = (-12).dp)
+                    .size(28.dp)
+            )
+
             result.categoryName?.let { category ->
                 Surface(
                     color = DarkGreen,
@@ -211,20 +208,6 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
         }
     }
 
-    override fun <T> getImageGallery(result: SearchResponseDTO): List<T> {
-        if (result.imageUrl.isNullOrBlank()) {
-            return emptyList()
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        return listOf(
-            ImageGallery(
-                imageName = null,
-                description = result.title,
-                url = result.imageUrl
-            )
-        ) as List<T>
-    }
 }
 
 @Preview
@@ -247,6 +230,7 @@ fun ClassifiedViewPreview() {
         postalCode = "97201",
         addressLine1 = "123 Eco Way",
         addressLine2 = "Suite 400",
+        imageUrl = "https://via.placeholder.com/600x360.png",
         distance = 2.5,
         phoneNumber = "(503) 555-0123",
         description = "Great condition electric lawnmower with recently replaced battery. Pickup only.",
