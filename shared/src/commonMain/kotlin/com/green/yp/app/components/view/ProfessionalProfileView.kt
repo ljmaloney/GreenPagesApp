@@ -126,6 +126,19 @@ fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceVie
                         }
                     }
 
+                    if (!result.imageUrl.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        AsyncImage(
+                            model = result.imageUrl,
+                            contentDescription = result.title,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Row(
@@ -268,7 +281,7 @@ fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceVie
 
 @Preview
 @Composable
-private fun ProfessionalProfileViewPreview() {
+fun ProfessionalProfileViewPreview() {
     val sampleResult = SearchResponseDTO(
         externId = "1",
         producerId = "p1",
@@ -286,6 +299,7 @@ private fun ProfessionalProfileViewPreview() {
         postalCode = "97201",
         addressLine1 = "123 Eco Way",
         addressLine2 = "Suite 400",
+        imageUrl = "https://via.placeholder.com/600x360.png",
         distance = 2.5,
         phoneNumber = "(503) 555-0123",
         description = "We provide eco-friendly landscaping and garden design services focused on native plants and water conservation.",

@@ -1,6 +1,7 @@
 package com.green.yp.app.components.view
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,11 +38,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.green.yp.app.PreviewContext
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
 import greenpagesapp.shared.generated.resources.Res
+import greenpagesapp.shared.generated.resources.classifieds_icon_gold
+import greenpagesapp.shared.generated.resources.classifieds_icon_hanging
+import org.jetbrains.compose.resources.painterResource
 
 fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer {
     @Composable
@@ -100,6 +105,18 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                         }
                     }
 
+                    if (!result.imageUrl.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        AsyncImage(
+                            model = result.imageUrl,
+                            contentDescription = result.title,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Row(
@@ -127,18 +144,6 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                                 color = Color.DarkGray
                             )
                         }
-                    }
-
-                    if (!result.imageUrl.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        AsyncImage(
-                            model = result.imageUrl,
-                            contentDescription = result.title,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp),
-                            contentScale = ContentScale.Crop
-                        )
                     }
 
                     if (!result.description.isNullOrBlank()) {
@@ -177,8 +182,8 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                 }
             }
 
-            AsyncImage(
-                model = Res.getUri("drawable/classifieds_icon_hanging.png"),
+            Image(
+                painter = painterResource(Res.drawable.classifieds_icon_gold),
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -213,6 +218,7 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
 @Preview
 @Composable
 fun ClassifiedViewPreview() {
+    PreviewContext()
     val sampleClassified = SearchResponseDTO(
         externId = "1",
         producerId = "p1",
