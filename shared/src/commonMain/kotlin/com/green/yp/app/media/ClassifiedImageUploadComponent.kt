@@ -5,18 +5,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +34,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.green.yp.app.components.AlertBanner
+import com.green.yp.app.components.AlertBannerItem
+import com.green.yp.app.components.AlertType
 import com.green.yp.app.shared.dto.classified.ClassifiedImageUpload
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.ui.theme.DarkGreen
@@ -43,45 +54,155 @@ fun ClassifiedImageUploadComponent(
 ) {
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val isUploadSuccess by viewModel.isUploadSuccess.collectAsState()
 
-    ClassifiedImageUploadComponentContent(
-        isLoading = isLoading,
-        errorMessage = errorMessage,
-        imagePicker = imagePicker,
-        onUpload = { image, fileName, description ->
-            println("DEBUG: onUpload triggered in UI")
-            viewModel.uploadImage(
-                ClassifiedImageUpload(
-                    classifiedId = classifiedId,
-                    bytes = image.bytes,
-                    fileName = fileName,
-                    contentType = image.contentType,
-                    description = description
-                )
+    val snackbarHostState = remember { SnackbarHostState() }
+    var resetTrigger by remember { mutableStateOf(0) }
+    var showDialog by remember { mutableStateOf(false) }
+    var showSuccessAlert by remember { mutableStateOf(false) }
+    var selectedImageForSheet by remember { mutableStateOf<ImageResult?>(null) }
+
+    LaunchedEffect(isUploadSuccess) {
+        if (isUploadSuccess) {
+            // Immediately close the dialog and reset state
+            showDialog = false
+            selectedImageForSheet = null
+            resetTrigger++
+            showSuccessAlert = true
+            
+            // Clear the success state in VM so we don't trigger this again immediately
+            viewModel.clearUploadSuccess()
+
+            // Show snackbar without blocking the UI updates above
+            snackbarHostState.showSnackbar(
+                message = "Image uploaded successfully",
+                actionLabel = "Dismiss",
+                withDismissAction = true
             )
         }
-    )
+    }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            if (showSuccessAlert) {
+                AlertBanner(
+                    alerts = listOf(
+                        AlertBannerItem(
+                            id = "upload-success",
+                            title = "Success",
+                            message = "Image uploaded successfully",
+                            type = AlertType.SUCCESS
+                        )
+                    ),
+                    onDismiss = { showSuccessAlert = false }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            if (!showDialog) {
+                Button(
+                    onClick = {
+                        imagePicker.pickImage { result ->
+                            selectedImageForSheet = result
+                            showDialog = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = DarkGreen,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        if (selectedImageForSheet == null) "Select Image" 
+                        else "Select a Different Image"
+                    )
+                }
+            }
+
+            if (showDialog) {
+                Dialog(
+                    onDismissRequest = {
+                        showDialog = false
+                        selectedImageForSheet = null
+                    },
+                    properties = DialogProperties(
+                        usePlatformDefaultWidth = false // Allows full-screen
+                    )
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.White
+                    ) {
+                        ClassifiedImageUploadComponentContent(
+                            isLoading = isLoading,
+                            errorMessage = errorMessage,
+                            showSuccessAlert = false,
+                            onDismissSuccessAlert = {},
+                            resetTrigger = resetTrigger,
+                            initialImage = selectedImageForSheet,
+                            onUpload = { image, fileName, description ->
+                                println("DEBUG: onUpload triggered in UI")
+                                viewModel.uploadImage(
+                                    ClassifiedImageUpload(
+                                        classifiedId = classifiedId,
+                                        bytes = image.bytes,
+                                        fileName = fileName,
+                                        contentType = image.contentType,
+                                        description = description
+                                    )
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 }
 
 @Composable
 fun ClassifiedImageUploadComponentContent(
     isLoading: Boolean,
     errorMessage: String?,
-    imagePicker: ImagePicker,
+    showSuccessAlert: Boolean = false,
+    onDismissSuccessAlert: () -> Unit = {},
+    resetTrigger: Int = 0,
     initialImage: ImageResult? = null,
     onUpload: (ImageResult, String, String) -> Unit
 ) {
-    var selectedImage by remember { mutableStateOf(initialImage) }
-    var fileName by remember { mutableStateOf(initialImage?.fileName ?: "") }
-    var description by remember { mutableStateOf("") }
+    var selectedImage by remember(resetTrigger) { mutableStateOf(initialImage) }
+    var fileName by remember(resetTrigger) { mutableStateOf(initialImage?.fileName ?: "") }
+    var description by remember(resetTrigger) { mutableStateOf("") }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
+            .verticalScroll(scrollState)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        if (showSuccessAlert) {
+            AlertBanner(
+                alerts = listOf(
+                    AlertBannerItem(
+                        id = "upload-success",
+                        title = "Success",
+                        message = "Image uploaded successfully",
+                        type = AlertType.SUCCESS
+                    )
+                ),
+                onDismiss = { onDismissSuccessAlert() }
+            )
+        }
+
         Text(
             text = "Upload Image",
             style = MaterialTheme.typography.titleMedium,
@@ -89,17 +210,9 @@ fun ClassifiedImageUploadComponentContent(
             fontWeight = FontWeight.Bold
         )
 
-        ImagePickerField(
-            picker = imagePicker,
-            onSelected = { result ->
-                selectedImage = result
-                fileName = result.fileName
-            }
-        )
-
         selectedImage?.let { image ->
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Box(
                 modifier = Modifier
                     .size(150.dp)
@@ -162,23 +275,22 @@ fun ClassifiedImageUploadComponentContent(
                 }
             }
         }
+        
+        // Add some spacer at the bottom to ensure the keyboard doesn't cover the button even when scrolled
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
 @Preview
 @Composable
 fun ClassifiedImageUploadComponentPreview() {
-    val mockImagePicker = object : ImagePicker {
-        override fun pickImage(onResult: (ImageResult) -> Unit) {
-        }
-    }
-
     MaterialTheme {
         Surface {
             ClassifiedImageUploadComponentContent(
                 isLoading = false,
                 errorMessage = null,
-                imagePicker = mockImagePicker,
+                showSuccessAlert = true,
+                onDismissSuccessAlert = {},
                 initialImage = ImageResult(ByteArray(0), "preview_image.jpg", "image/jpeg"),
                 onUpload = { _, _, _ -> }
             )

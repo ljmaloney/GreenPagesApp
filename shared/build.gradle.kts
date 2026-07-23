@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktorfit)
     alias(libs.plugins.buildKonfig)
+    alias(libs.plugins.lumo)
     kotlin("native.cocoapods")
 }
 
@@ -85,6 +86,7 @@ kotlin {
             implementation(libs.google.playServices.location)
             implementation(libs.ktor.client.okhttp)
             api(libs.square.card.entry)
+            implementation(libs.lumo.ui)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

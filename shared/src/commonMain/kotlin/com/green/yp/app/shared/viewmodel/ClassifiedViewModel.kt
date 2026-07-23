@@ -9,6 +9,7 @@ import com.green.yp.app.shared.dto.classified.ClassifiedRequest
 import com.green.yp.app.shared.dto.classified.ClassifiedResponse
 import com.green.yp.app.shared.dto.classified.ImageGallery
 import com.green.yp.app.shared.repository.ClassifiedRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
@@ -23,16 +24,12 @@ class ClassifiedViewModel(private val repository: ClassifiedRepository) : ViewMo
     val isValidated: StateFlow<Boolean> = repository.isValidated
     val imageGallery: StateFlow<List<ImageGallery>> = repository.imageGallery
 
+    private val _isUploadSuccess = MutableStateFlow(false)
+    val isUploadSuccess: StateFlow<Boolean> = _isUploadSuccess
+
     fun createClassifiedAd(request: ClassifiedRequest) {
         viewModelScope.launch {
             repository.createClassifiedAd(request)
-        }
-    }
-
-    @OptIn(ExperimentalUuidApi::class)
-    fun validateClassifiedEmail(classifiedId: Uuid, emailAddress: String, token: String) {
-        viewModelScope.launch {
-            repository.validateClassifiedEmail(classifiedId, emailAddress, token)
         }
     }
 
@@ -49,12 +46,24 @@ class ClassifiedViewModel(private val repository: ClassifiedRepository) : ViewMo
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
+    fun getClassifiedImageGallery(classifiedId: Uuid) {
+        viewModelScope.launch {
+            repository.getClassifiedImageGallery(classifiedId)
+        }
+    }
+
     fun uploadImage(request: ClassifiedImageUpload) {
         viewModelScope.launch {
             repository.uploadImage(request).onSuccess {
+                _isUploadSuccess.value = true
                 repository.getClassifiedImageGallery(request.classifiedId)
             }
         }
+    }
+
+    fun clearUploadSuccess() {
+        _isUploadSuccess.value = false
     }
 
     @OptIn(ExperimentalUuidApi::class)

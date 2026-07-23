@@ -94,30 +94,12 @@ fun UploadImagesContent(
             text = "You can upload up to $maxImages images for your ad. (${imageGallery.size}/$maxImages uploaded)",
             style = MaterialTheme.typography.bodyMedium
         )
-
-        if (imageGallery.size < maxImages) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                ClassifiedImageUploadComponent(
-                    classifiedId = classifiedId,
-                    viewModel = viewModel,
-                    imagePicker = imagePicker
-                )
-            }
-        } else {
-            InfoBanner(text = "You have reached the maximum number of images for this ad type.")
-        }
-
         if (imageGallery.isNotEmpty()) {
             Text(
                 text = "Uploaded Images",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,6 +119,22 @@ fun UploadImagesContent(
                     }
                 }
             }
+        }
+        //upload component
+        if (imageGallery.size < maxImages) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                ClassifiedImageUploadComponent(
+                    classifiedId = classifiedId,
+                    viewModel = viewModel,
+                    imagePicker = imagePicker
+                )
+            }
+        } else {
+            InfoBanner(text = "You have reached the maximum number of images for this ad type.")
         }
     }
 }

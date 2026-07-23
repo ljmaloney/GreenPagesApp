@@ -1,4 +1,4 @@
-package com.green.yp.app.ui.theme
+package com.green.yp.app.components.generated
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.compositionLocalOf

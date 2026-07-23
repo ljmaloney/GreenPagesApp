@@ -8,7 +8,9 @@ enum class ClassifiedWizardStep {
     EMAIL_VALIDATION,
     IMAGES,
     PREVIEW,
-    PAYMENT
+    PAYMENT,
+    PAYMENT_SUCCESS,
+    PAYMENT_FAILED
 }
 
 fun ClassifiedWizardStep.next(): ClassifiedWizardStep =
@@ -20,7 +22,10 @@ fun ClassifiedWizardStep.next(): ClassifiedWizardStep =
         ClassifiedWizardStep.EMAIL_VALIDATION -> ClassifiedWizardStep.IMAGES
         ClassifiedWizardStep.IMAGES -> ClassifiedWizardStep.PREVIEW
         ClassifiedWizardStep.PREVIEW -> ClassifiedWizardStep.PAYMENT
-        ClassifiedWizardStep.PAYMENT -> ClassifiedWizardStep.PAYMENT
+        ClassifiedWizardStep.PAYMENT -> ClassifiedWizardStep.PAYMENT_SUCCESS
+        ClassifiedWizardStep.PAYMENT-> ClassifiedWizardStep.PAYMENT_FAILED
+        ClassifiedWizardStep.PAYMENT_FAILED -> ClassifiedWizardStep.PAYMENT
+        ClassifiedWizardStep.PAYMENT_SUCCESS -> ClassifiedWizardStep.PAYMENT_SUCCESS
     }
 
 fun ClassifiedWizardStep.previous(): ClassifiedWizardStep =
@@ -32,5 +37,8 @@ fun ClassifiedWizardStep.previous(): ClassifiedWizardStep =
         ClassifiedWizardStep.EMAIL_VALIDATION -> ClassifiedWizardStep.CONTACT
         ClassifiedWizardStep.IMAGES -> ClassifiedWizardStep.EMAIL_VALIDATION
         ClassifiedWizardStep.PREVIEW -> ClassifiedWizardStep.IMAGES
-        ClassifiedWizardStep.PAYMENT -> ClassifiedWizardStep.PREVIEW
+        ClassifiedWizardStep.PAYMENT -> ClassifiedWizardStep.PAYMENT_SUCCESS
+        ClassifiedWizardStep.PAYMENT-> ClassifiedWizardStep.PAYMENT_FAILED
+        ClassifiedWizardStep.PAYMENT_FAILED -> ClassifiedWizardStep.PAYMENT
+        ClassifiedWizardStep.PAYMENT_SUCCESS -> ClassifiedWizardStep.PAYMENT
     }

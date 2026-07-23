@@ -1,5 +1,5 @@
 [versions]
-agp = "9.2.1"
+agp = "9.3.0"
 android-compileSdk = "36"
 android-minSdk = "33"
 android-targetSdk = "36"
@@ -24,6 +24,7 @@ coil = "3.0.4"
 kermit = "2.0.4"
 buildKonfig = "0.22.0"
 square-inapp-payments = "1.6.8"
+lumo = "1.2.5"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -63,6 +64,7 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 square-card-entry = { module = "com.squareup.sdk.in-app-payments:card-entry", version.ref = "square-inapp-payments" }
+lumo-ui = { module = "com.nomanr:lumo", version.ref = "lumo" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -74,3 +76,4 @@ kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
 buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
+lumo = { id = "com.nomanr.plugin.lumo", version.ref = "lumo" }
