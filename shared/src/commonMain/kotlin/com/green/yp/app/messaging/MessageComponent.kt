@@ -29,28 +29,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.green.yp.app.shared.dto.message.MessageDTO
 import com.green.yp.app.ui.theme.DarkGreen
 
 @Composable
 fun MessageComponent(
+    draft: MessageDraft,
+    onDraftChange: (MessageDraft) -> Unit,
     subject: String,
-    onSendMessage: (MessageDTO) -> Unit,
+    onSendMessage: () -> Unit,
     onCancel: () -> Unit,
-    modifier: Modifier = Modifier,
-    companyName: String? = null
+    modifier: Modifier = Modifier
 ) {
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var editableSubject by remember(subject) { mutableStateOf(subject) }
-    var message by remember { mutableStateOf("") }
+    val editableSubject = if (draft.subject.isBlank()) subject else draft.subject
     var showValidation by remember { mutableStateOf(false) }
 
-    val isNameValid = name.isNotBlank()
-    val isEmailValid = email.isNotBlank()
+    val isNameValid = draft.name.isNotBlank()
+    val isEmailValid = draft.emailAddress.isNotBlank()
     val isSubjectValid = editableSubject.isNotBlank()
-    val isMessageValid = message.isNotBlank()
+    val isMessageValid = draft.message.isNotBlank()
     val isFormValid = isNameValid && isEmailValid && isSubjectValid && isMessageValid
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = DarkGreen,
@@ -69,8 +65,8 @@ fun MessageComponent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
+            value = draft.name,
+            onValueChange = { onDraftChange(draft.copy(name = it)) },
             label = { Text("Your Name *") },
             isError = showValidation && !isNameValid,
             modifier = Modifier.fillMaxWidth(),
@@ -79,8 +75,8 @@ fun MessageComponent(
         )
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = draft.emailAddress,
+            onValueChange = { onDraftChange(draft.copy(emailAddress = it)) },
             label = { Text("Your Email *") },
             isError = showValidation && !isEmailValid,
             modifier = Modifier.fillMaxWidth(),
@@ -89,8 +85,8 @@ fun MessageComponent(
         )
 
         OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = formatUsPhone(it) },
+            value = draft.phoneNumber,
+            onValueChange = { onDraftChange(draft.copy(phoneNumber = formatUsPhone(it))) },
             label = { Text("Your Phone") },
             modifier = Modifier.fillMaxWidth(),
             colors = textFieldColors,
@@ -99,7 +95,7 @@ fun MessageComponent(
 
         OutlinedTextField(
             value = editableSubject,
-            onValueChange = { editableSubject = it },
+            onValueChange = { onDraftChange(draft.copy(subject = it)) },
             label = { Text("Subject *") },
             isError = showValidation && !isSubjectValid,
             modifier = Modifier.fillMaxWidth(),
@@ -108,8 +104,8 @@ fun MessageComponent(
         )
 
         OutlinedTextField(
-            value = message,
-            onValueChange = { message = it },
+            value = draft.message,
+            onValueChange = { onDraftChange(draft.copy(message = it)) },
             label = { Text("Message *") },
             isError = showValidation && !isMessageValid,
             modifier = Modifier
@@ -127,16 +123,7 @@ fun MessageComponent(
                 onClick = {
                     showValidation = true
                     if (isFormValid) {
-                        onSendMessage(
-                            MessageDTO(
-                                companyName = companyName,
-                                emailAddress = email.trim(),
-                                name = name.trim(),
-                                phoneNumber = phone,
-                                subject = editableSubject.trim(),
-                                message = message.trim()
-                            )
-                        )
+                        onSendMessage()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
@@ -185,6 +172,14 @@ private fun formatUsPhone(input: String): String {
 private fun MessageComponentPreview() {
     MaterialTheme {
         MessageComponent(
+            draft = MessageDraft(
+                emailAddress = "",
+                name = "",
+                phoneNumber = "",
+                subject = "",
+                message = ""
+            ),
+            onDraftChange = {},
             subject = "Question about listing",
             onSendMessage = {},
             onCancel = {}

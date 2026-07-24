@@ -6,6 +6,7 @@ import co.touchlab.kermit.Logger
 import com.green.yp.app.shared.dto.message.MessageRequest
 import com.green.yp.app.shared.dto.message.MessageRequestType
 import com.green.yp.app.shared.dto.message.ProfessionalLeadRequest
+import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.shared.repository.ClassifiedRepository
 import com.green.yp.app.shared.repository.EmailContactRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +56,17 @@ class MessagingViewModel(
     }
 
     fun sendContactMessage(
+        searchResponse: SearchResponseDTO,
+        onResult: (Result<Unit>) -> Unit = {}
+    ) {
+        sendContactMessage(
+            messageType = MessageRequestType.CLASSIFIED_AD_EMAIL,
+            classifiedId = searchResponse.externId,
+            onResult = onResult
+        )
+    }
+
+    fun sendContactMessage(
         messageType: MessageRequestType,
         classifiedId: String? = null,
         proMessage: ProfessionalLeadRequest? = null,
@@ -74,6 +86,7 @@ class MessagingViewModel(
             subject = draft.subject,
             message = draft.message
         )
+        log.d("Sending contact message: $request")
 
         viewModelScope.launch {
             val result = messagingRepository.sendContactMessage(request)
