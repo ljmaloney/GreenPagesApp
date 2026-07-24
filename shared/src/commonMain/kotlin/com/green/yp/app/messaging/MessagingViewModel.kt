@@ -59,11 +59,26 @@ class MessagingViewModel(
         searchResponse: SearchResponseDTO,
         onResult: (Result<Unit>) -> Unit = {}
     ) {
+        initializeClassifiedDraft(searchResponse)
         sendContactMessage(
             messageType = MessageRequestType.CLASSIFIED_AD_EMAIL,
             classifiedId = searchResponse.externId,
             onResult = onResult
         )
+    }
+
+    fun initializeClassifiedDraft(searchResponse: SearchResponseDTO) {
+        val defaultSubject = "Re: ${searchResponse.title}"
+        val defaultPhone = classified.createdAd.value?.phoneNumber
+            ?.takeIf { it.isNotBlank() }
+            ?: searchResponse.phoneNumber.takeIf { it.isNotBlank() }
+
+        updateState {
+            copy(
+                phoneNumber = phoneNumber.ifBlank { defaultPhone.orEmpty() },
+                subject = subject.ifBlank { defaultSubject }
+            )
+        }
     }
 
     fun sendContactMessage(

@@ -37,11 +37,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.green.yp.app.PreviewContext
 import com.green.yp.app.components.ModalSurface
+import com.green.yp.app.components.generated.components.AlertDialog
+import com.green.yp.app.messaging.MessageDraft
 import com.green.yp.app.messaging.MessageComponent
 import com.green.yp.app.messaging.MessagingViewModel
 import com.green.yp.app.shared.dto.search.SearchRecordType
@@ -56,9 +59,22 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer {
     @Composable
     override fun renderView(result: SearchResponseDTO, modifier: Modifier?, onClick: () -> Unit) {
-        val messagingViewModel: MessagingViewModel = koinViewModel()
-        val draft by messagingViewModel.state.collectAsState()
+        val isPreview = LocalInspectionMode.current
+        val messagingViewModel: MessagingViewModel? = if (isPreview) null else koinViewModel()
+        var previewDraft by remember(result.title) {
+            mutableStateOf(
+                MessageDraft(
+                    emailAddress = "",
+                    name = "",
+                    phoneNumber = "",
+                    subject = result.title,
+                    message = ""
+                )
+            )
+        }
+        val draft = messagingViewModel?.state?.collectAsState()?.value ?: previewDraft
         var showMessageModal by remember { mutableStateOf(false) }
+        var sendErrorMessage by remember { mutableStateOf<String?>(null) }
 
         Box(
             modifier = (modifier ?: Modifier)
@@ -238,17 +254,39 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                 MessageComponent(
                     draft = draft,
                     onDraftChange = { updatedDraft ->
-                        messagingViewModel.updateDraft { updatedDraft }
+                        messagingViewModel?.updateDraft { updatedDraft } ?: run {
+                            previewDraft = updatedDraft
+                        }
                     },
                     subject = result.title,
                     onSendMessage = {
-                        messagingViewModel.sendContactMessage(result) { sendResult ->
+                        messagingViewModel?.sendContactMessage(result) { sendResult ->
                             sendResult.onSuccess {
                                 showMessageModal = false
                             }
+                            sendResult.onFailure { throwable ->
+                                sendErrorMessage = throwable.message?.takeIf { it.isNotBlank() }
+                                    ?: "Unable to send your message right now. Please try again."
+                            }
+                        } ?: run {
+                            showMessageModal = false
                         }
                     },
                     onCancel = { showMessageModal = false }
+                )
+            }
+
+            sendErrorMessage?.let { errorText ->
+                AlertDialog(
+                    onDismissRequest = { sendErrorMessage = null },
+                    onConfirmClick = { sendErrorMessage = null },
+                    title = "Message Failed",
+                    text = errorText,
+                    confirmButtonText = "OK",
+                    dismissButtonText = null,
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black,
+                    textContentColor = Color.DarkGray,
                 )
             }
         }

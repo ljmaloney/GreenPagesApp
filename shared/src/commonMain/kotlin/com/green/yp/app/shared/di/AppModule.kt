@@ -7,6 +7,7 @@ import com.green.yp.app.shared.api.ClassifiedReferenceApi
 import com.green.yp.app.shared.api.EmailContactApi
 import com.green.yp.app.shared.api.ReferenceApi
 import com.green.yp.app.shared.api.SearchApi
+import com.green.yp.app.messaging.MessagingViewModel
 import com.green.yp.app.shared.network.HttpClientFactory
 import com.green.yp.app.shared.repository.ClassifiedReferenceRepository
 import com.green.yp.app.shared.repository.ClassifiedReferenceRepositoryImpl
@@ -99,6 +100,13 @@ val appModule = module {
 
     factory {
         ReferenceViewModel(get<ReferenceRepository>())
+    }
+
+    factory {
+        MessagingViewModel(
+            get<ClassifiedRepository>(),
+            get<EmailContactRepository>()
+        )
     }
 
     factory {

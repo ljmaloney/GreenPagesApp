@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -29,10 +30,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.green.yp.app.ui.theme.DarkGold
 
 @Composable
 fun ModalSurface(
@@ -73,11 +76,12 @@ fun ModalSurface(
                         enabled = dismissOnClickOutside,
                         onClick = onDismissRequest
                     ),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.TopCenter
             ) {
 
                 Surface(
                     modifier = modifier
+                        .padding(top = 24.dp)
                         .fillMaxWidth(widthFraction)
                         .heightIn(max = maxHeight)
                         .clickable(enabled = false) { },
@@ -92,10 +96,12 @@ fun ModalSurface(
                         IconButton(
                             onClick = onDismissRequest,
                             modifier = Modifier
-                                .align(Alignment.TopStart),
+                                .align(Alignment.TopStart)
+                                .offset(y = (-8).dp)
+                                .zIndex(1f),
                             colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                containerColor = DarkGold,
+                                contentColor = Color.Red
                             )
                         ) {
                             Icon(
@@ -104,7 +110,7 @@ fun ModalSurface(
                             )
                         }
 
-                        Box(modifier = Modifier.padding(top = 36.dp)) {
+                        Box(modifier = Modifier.padding(top = 52.dp)) {
                             content()
                         }
                     }
