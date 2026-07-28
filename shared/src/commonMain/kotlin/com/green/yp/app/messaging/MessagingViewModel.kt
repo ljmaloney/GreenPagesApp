@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.green.yp.app.shared.dto.message.MessageRequest
 import com.green.yp.app.shared.dto.message.MessageRequestType
+import com.green.yp.app.shared.dto.message.ProfessionalMessageType
 import com.green.yp.app.shared.dto.message.ProfessionalLeadRequest
+import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.shared.repository.ClassifiedRepository
 import com.green.yp.app.shared.repository.EmailContactRepository
@@ -60,10 +62,31 @@ class MessagingViewModel(
         onResult: (Result<Unit>) -> Unit = {}
     ) {
         initializeClassifiedDraft(searchResponse)
-        sendContactMessage(
-            messageType = MessageRequestType.CLASSIFIED_AD_EMAIL,
-            classifiedId = searchResponse.externId,
-            onResult = onResult
+        when (searchResponse.recordType) {
+            SearchRecordType.GREEN_PRO -> {
+                sendContactMessage(
+                    messageType = MessageRequestType.PRODUCER_GENERIC_TYPE,
+                    proMessage = buildProfessionalLeadRequest(searchResponse),
+                    onResult = onResult
+                )
+            }
+
+            else -> {
+                sendContactMessage(
+                    messageType = MessageRequestType.CLASSIFIED_AD_EMAIL,
+                    classifiedId = searchResponse.externId,
+                    onResult = onResult
+                )
+            }
+        }
+    }
+
+    private fun buildProfessionalLeadRequest(searchResponse: SearchResponseDTO): ProfessionalLeadRequest {
+        return ProfessionalLeadRequest(
+            producerId = searchResponse.producerId.orEmpty(),
+            locationId = searchResponse.locationId.orEmpty(),
+            contactType = ProfessionalMessageType.GENERAL_REQUEST,
+            productServiceRef = searchResponse.categoryRef
         )
     }
 
@@ -71,7 +94,7 @@ class MessagingViewModel(
         val defaultSubject = "Re: ${searchResponse.title}"
         val defaultPhone = classified.createdAd.value?.phoneNumber
             ?.takeIf { it.isNotBlank() }
-            ?: searchResponse.phoneNumber.takeIf { it.isNotBlank() }
+            ?: searchResponse.phoneNumber?.takeIf { it.isNotBlank() }
 
         updateState {
             copy(
@@ -97,7 +120,7 @@ class MessagingViewModel(
             companyName = draft.companyName,
             emailAddress = draft.emailAddress,
             name = draft.name,
-            phoneNumber = draft.phoneNumber,
+            phoneNumber = formatPhoneForSubmission(draft.phoneNumber),
             subject = draft.subject,
             message = draft.message
         )
@@ -110,5 +133,16 @@ class MessagingViewModel(
             }
             onResult(result)
         }
+    }
+
+    private fun formatPhoneForSubmission(input: String): String {
+        val digits = input.filter { it.isDigit() }
+        val normalizedDigits = when {
+            digits.length == 11 && digits.startsWith("1") -> digits.drop(1)
+            digits.length == 10 -> digits
+            else -> return input
+        }
+
+        return "(${normalizedDigits.substring(0, 3)}) ${normalizedDigits.substring(3, 6)}-${normalizedDigits.substring(6, 10)}"
     }
 }
