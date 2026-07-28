@@ -66,7 +66,11 @@ fun MessageComponent(
     ) {
         OutlinedTextField(
             value = draft.name,
-            onValueChange = { onDraftChange(draft.copy(name = it)) },
+            onValueChange = { input ->
+                if (input.isEmpty() || input.all { it.isLetter() || it == ' ' }) {
+                    onDraftChange(draft.copy(name = input))
+                }
+            },
             label = { Text("Your Name *") },
             isError = showValidation && !isNameValid,
             modifier = Modifier.fillMaxWidth(),
@@ -86,7 +90,18 @@ fun MessageComponent(
 
         OutlinedTextField(
             value = draft.phoneNumber,
-            onValueChange = { onDraftChange(draft.copy(phoneNumber = formatUsPhone(it))) },
+            onValueChange = { input ->
+                val digits = input.filter { it.isDigit() }.take(10)
+                onDraftChange(
+                    draft.copy(
+                        phoneNumber = if (digits.length == 10) {
+                            formatUsPhone(digits)
+                        } else {
+                            digits
+                        }
+                    )
+                )
+            },
             label = { Text("Your Phone") },
             modifier = Modifier.fillMaxWidth(),
             colors = textFieldColors,
