@@ -86,7 +86,7 @@ class EmailContactRepositoryImpl(private val emailContactApi: EmailContactApi) :
                 else -> throwable.message ?: "Unknown error"
             }
             _errorMessage.value = error
-            log.e("Exception sending contact message", throwable)
+            log.e("Exception sending contact message: ${throwable.message ?: "Unknown error"}")
         }.also {
             _isLoading.value = false
         }

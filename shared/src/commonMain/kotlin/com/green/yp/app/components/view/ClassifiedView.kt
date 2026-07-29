@@ -265,8 +265,7 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                                 showMessageModal = false
                             }
                             sendResult.onFailure { throwable ->
-                                sendErrorMessage = throwable.message?.takeIf { it.isNotBlank() }
-                                    ?: "Unable to send your message right now. Please try again."
+                                sendErrorMessage = messagingViewModel.getSendMessageError(throwable)
                             }
                         } ?: run {
                             showMessageModal = false

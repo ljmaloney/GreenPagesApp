@@ -11,6 +11,7 @@ import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.shared.repository.ClassifiedRepository
 import com.green.yp.app.shared.repository.EmailContactRepository
+import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,9 @@ class MessagingViewModel(
     private val classified: ClassifiedRepository,
     private val messagingRepository: EmailContactRepository
 ) : ViewModel() {
+    companion object {
+        private const val SEND_MESSAGE_GENERIC_ERROR = "There was an error sending your message. Please try again later"
+    }
     private val log = Logger.withTag("green.yp.app.messaging.MessagingViewModel")
 
     private val _state = MutableStateFlow(
@@ -129,9 +133,28 @@ class MessagingViewModel(
         viewModelScope.launch {
             val result = messagingRepository.sendContactMessage(request)
             result.onFailure { throwable ->
-                log.e("Failed sending contact message", throwable)
+                log.e("Failed sending contact message: ${throwable.message ?: "Unknown error"}")
             }
             onResult(result)
+        }
+    }
+
+    fun getSendMessageError(throwable: Throwable): String {
+        val responseError = throwable as? ResponseException
+        val statusCode = responseError?.response?.status?.value
+
+        return when {
+            statusCode in 400..499 -> throwable.message
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?: SEND_MESSAGE_GENERIC_ERROR
+
+            statusCode in 500..599 -> SEND_MESSAGE_GENERIC_ERROR
+
+            else -> throwable.message
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?: SEND_MESSAGE_GENERIC_ERROR
         }
     }
 

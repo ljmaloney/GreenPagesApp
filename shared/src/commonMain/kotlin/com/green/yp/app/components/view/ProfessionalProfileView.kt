@@ -58,7 +58,7 @@ import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
 import greenpagesapp.shared.generated.resources.Res
-import greenpagesapp.shared.generated.resources.classifieds_icon_golden
+import greenpagesapp.shared.generated.resources.professional_profile_icon_three
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -306,13 +306,13 @@ fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceVie
             }
 
             Image(
-                painter = painterResource(Res.drawable.classifieds_icon_golden),
+                painter = painterResource(Res.drawable.professional_profile_icon_three),
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .offset(x = (-2).dp)
                     .offset(y = (-10).dp)
-                    .size(28.dp)
+                    .size(32.dp)
             )
 
             if (!result.emailAddress.isNullOrBlank()) {
@@ -346,8 +346,7 @@ fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceVie
                                 showMessageModal = false
                             }
                             sendResult.onFailure { throwable ->
-                                sendErrorMessage = throwable.message?.takeIf { it.isNotBlank() }
-                                    ?: "Unable to send your message right now. Please try again."
+                                sendErrorMessage = messagingViewModel.getSendMessageError(throwable)
                             }
                         } ?: run {
                             showMessageModal = false
