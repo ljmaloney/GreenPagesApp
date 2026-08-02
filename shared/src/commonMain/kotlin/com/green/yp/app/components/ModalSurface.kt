@@ -19,7 +19,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,12 +33,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.green.yp.app.ui.theme.Gray400
 import com.green.yp.app.ui.theme.Gold500
 import com.green.yp.app.ui.theme.Green700
 
@@ -56,6 +62,8 @@ fun ModalSurface(
     content: @Composable BoxScope.() -> Unit
 ) {
     if (!visible) return
+
+    val scrollState = rememberScrollState()
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -126,13 +134,40 @@ fun ModalSurface(
                             )
                         }
 
-                        Box(modifier = Modifier.padding(top = 12.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 12.dp)
+                                .verticalScroll(scrollState)
+                                .drawVerticalScrollbar(scrollState)
+                        ) {
                             content()
                         }
                     }
                 }
             }
         }
+    }
+}
+
+private fun Modifier.drawVerticalScrollbar(
+    state: androidx.compose.foundation.ScrollState,
+    color: Color = Gray400
+): Modifier = drawWithContent {
+    drawContent()
+
+    val viewPortHeight = size.height
+    val totalContentHeight = state.maxValue + viewPortHeight
+    val scrollValue = state.value.toFloat()
+
+    if (totalContentHeight > viewPortHeight) {
+        val scrollbarHeight = (viewPortHeight / totalContentHeight) * viewPortHeight
+        val scrollbarOffset = (scrollValue / totalContentHeight) * viewPortHeight
+
+        drawRect(
+            color = color.copy(alpha = 0.5f),
+            topLeft = Offset(size.width - 4.dp.toPx(), scrollbarOffset),
+            size = Size(4.dp.toPx(), scrollbarHeight)
+        )
     }
 }
 
@@ -143,14 +178,17 @@ private fun ModalSurfacePreview() {
 
     ModalSurface(
         visible = visible,
-        onDismissRequest = { visible = false }
+        onDismissRequest = { visible = false },
+        header = "Scrollable Modal Preview"
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "Modal content preview",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.align(Alignment.Center)
-            )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            repeat(50) { index ->
+                Text(
+                    text = "Item #$index - This is some long content to trigger the scrollbar in the modal surface.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
         }
     }
 }

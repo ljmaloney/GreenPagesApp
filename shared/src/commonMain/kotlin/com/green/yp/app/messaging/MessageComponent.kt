@@ -42,7 +42,8 @@ fun MessageComponent(
     subject: String,
     onSendMessage: () -> Unit,
     onCancel: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isScrollable: Boolean = true
 ) {
     val editableSubject = if (draft.subject.isBlank()) subject else draft.subject
     var showValidation by remember { mutableStateOf(false) }
@@ -68,7 +69,7 @@ fun MessageComponent(
             .background(Color.White)
             .then(modifier)
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
+            .then(if (isScrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

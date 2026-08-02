@@ -257,6 +257,7 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
             ) {
                 MessageComponent(
                     draft = draft,
+                    isScrollable = false,
                     onDraftChange = { updatedDraft ->
                         messagingViewModel?.updateDraft { updatedDraft } ?: run {
                             previewDraft = updatedDraft

@@ -335,6 +335,7 @@ fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceVie
             ) {
                 MessageComponent(
                     draft = draft,
+                    isScrollable = false,
                     onDraftChange = { updatedDraft ->
                         messagingViewModel?.updateDraft { updatedDraft } ?: run {
                             previewDraft = updatedDraft

@@ -196,8 +196,8 @@ class ClassifiedWizardViewModel(
         )
         log.d("Processing payment for classified ad: $payment.listingId")
         val result = repository.processClassifiedPayment(payment)
-
         result.onSuccess { response ->
+            log.d("Payment response: $response")
             if ( response.paymentStatus == "SUCCESS" || response.paymentStatus == "COMPLETED"){
                 updateState {
                     copy(
