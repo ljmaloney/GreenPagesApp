@@ -58,7 +58,7 @@ import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
 import greenpagesapp.shared.generated.resources.Res
-import greenpagesapp.shared.generated.resources.professional_profile_icon_three
+import greenpagesapp.shared.generated.resources.professional_icon_gold
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -306,13 +306,13 @@ fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceVie
             }
 
             Image(
-                painter = painterResource(Res.drawable.professional_profile_icon_three),
+                painter = painterResource(Res.drawable.professional_icon_gold),
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(x = (-2).dp)
+                    .offset(x = (-6).dp)
                     .offset(y = (-10).dp)
-                    .size(32.dp)
+                    .size(28.dp)
             )
 
             if (!result.emailAddress.isNullOrBlank()) {
@@ -324,13 +324,14 @@ fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceVie
                         .align(Alignment.BottomEnd)
                         .padding(end = 8.dp, bottom = 8.dp)
                         .clickable { showMessageModal = true }
-                        .size(18.dp)
+                        .size(24.dp)
                 )
             }
 
             ModalSurface(
                 visible = showMessageModal,
-                onDismissRequest = { showMessageModal = false }
+                onDismissRequest = { showMessageModal = false },
+                header = "Sending Message for ${result.title}"
             ) {
                 MessageComponent(
                     draft = draft,

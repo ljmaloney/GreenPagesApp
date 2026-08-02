@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,12 +46,16 @@ fun MessageComponent(
 ) {
     val editableSubject = if (draft.subject.isBlank()) subject else draft.subject
     var showValidation by remember { mutableStateOf(false) }
+    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+    val phoneRegex = "^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}$".toRegex()
 
-    val isNameValid = draft.name.isNotBlank()
-    val isEmailValid = draft.emailAddress.isNotBlank()
+    val isNameValid = isNameValid(draft.name)
+    val isEmailValid = draft.emailAddress.isNotBlank() && draft.emailAddress.matches(emailRegex)
     val isSubjectValid = editableSubject.isNotBlank()
     val isMessageValid = draft.message.isNotBlank()
     val isFormValid = isNameValid && isEmailValid && isSubjectValid && isMessageValid
+    var nameInput by remember(draft.name) { mutableStateOf(draft.name) }
+    var phoneInput by remember(draft.phoneNumber) { mutableStateOf(draft.phoneNumber) }
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = DarkGreen,
         unfocusedBorderColor = DarkGreen,
@@ -68,11 +73,22 @@ fun MessageComponent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         OutlinedTextField(
-            value = draft.name,
-            onValueChange = { onDraftChange(draft.copy(name = it)) },
+            value = nameInput,
+            onValueChange = {
+                nameInput = it
+                onDraftChange(draft.copy(name = it))
+            },
             label = { Text("Your Name *") },
             isError = showValidation && !isNameValid,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        val formatted = formatNameInput(nameInput)
+                        nameInput = formatted
+                        onDraftChange(draft.copy(name = formatted))
+                    }
+                },
             colors = textFieldColors,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             singleLine = true
@@ -82,32 +98,49 @@ fun MessageComponent(
             value = draft.emailAddress,
             onValueChange = { onDraftChange(draft.copy(emailAddress = it)) },
             label = { Text("Your Email *") },
+            placeholder = { Text("you@example.com") },
             isError = showValidation && !isEmailValid,
             modifier = Modifier.fillMaxWidth(),
             colors = textFieldColors,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true
+            singleLine = true,
+            supportingText = {
+                if (draft.emailAddress.isNotEmpty() && !draft.emailAddress.matches(emailRegex)) {
+                    Text("Invalid email format", color = MaterialTheme.colorScheme.error)
+                }
+            }
         )
 
         OutlinedTextField(
-            value = draft.phoneNumber,
+            value = phoneInput,
             onValueChange = { input ->
-                val digits = input.filter { it.isDigit() }.take(10)
-                onDraftChange(
-                    draft.copy(
-                        phoneNumber = if (digits.length == 10) {
-                            formatUsPhone(digits)
-                        } else {
-                            digits
-                        }
-                    )
-                )
+                if (input.all { it.isDigit() || it == '-' || it == '(' || it == ')' || it == ' ' || it == '+' }) {
+                    phoneInput = input
+                    onDraftChange(draft.copy(phoneNumber = input))
+                }
             },
             label = { Text("Your Phone") },
-            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("(555) 555-5555") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        val digitsOnly = phoneInput.filter { it.isDigit() }
+                        if (digitsOnly.length == 10) {
+                            val formatted = "(${digitsOnly.substring(0, 3)}) ${digitsOnly.substring(3, 6)}-${digitsOnly.substring(6)}"
+                            phoneInput = formatted
+                            onDraftChange(draft.copy(phoneNumber = formatted))
+                        }
+                    }
+                },
             colors = textFieldColors,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            singleLine = true,
+            supportingText = {
+                if (phoneInput.isNotEmpty() && !phoneInput.matches(phoneRegex)) {
+                    Text("Invalid US phone number format", color = MaterialTheme.colorScheme.error)
+                }
+            }
         )
 
         OutlinedTextField(
@@ -143,6 +176,7 @@ fun MessageComponent(
                         onSendMessage()
                     }
                 },
+                enabled = isFormValid,
                 colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
             ) {
                 Icon(
@@ -166,22 +200,38 @@ fun MessageComponent(
     }
 }
 
-private fun formatUsPhone(input: String): String {
-    val digits = input.filter { it.isDigit() }.take(10)
-    if (digits.isEmpty()) return ""
+private fun isNameValid(input: String): Boolean {
+    if (input.isBlank()) return false
+    if (input.first().isWhitespace() || input.last().isWhitespace()) return false
+    if (input.contains("  ")) return false
+    if (input.first().isLowerCase()) return false
 
-    return buildString {
-        append("(")
-        append(digits.take(3))
-        if (digits.length >= 4) {
-            append(") ")
-            append(digits.substring(3, minOf(6, digits.length)))
-        }
-        if (digits.length >= 7) {
-            append("-")
-            append(digits.substring(6, digits.length))
+    return input.all {
+        it.isLetter() || it == ' ' || it == '-' || it == '.' || it == '\''
+    }
+}
+
+private fun formatNameInput(input: String): String {
+    val builder = StringBuilder(input.length)
+    var capitalizeNext = true
+
+    input.forEach { char ->
+        when {
+            char.isLetter() -> {
+                builder.append(if (capitalizeNext) char.uppercaseChar() else char.lowercaseChar())
+                capitalizeNext = false
+            }
+
+            else -> {
+                builder.append(char)
+                if (char == ' ') {
+                    capitalizeNext = true
+                }
+            }
         }
     }
+
+    return builder.toString()
 }
 
 @Preview(showBackground = true)

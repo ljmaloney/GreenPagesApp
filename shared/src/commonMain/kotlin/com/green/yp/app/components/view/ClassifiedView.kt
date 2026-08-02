@@ -20,6 +20,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -43,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.green.yp.app.PreviewContext
 import com.green.yp.app.components.ModalSurface
-import com.green.yp.app.components.generated.components.AlertDialog
 import com.green.yp.app.messaging.MessageDraft
 import com.green.yp.app.messaging.MessageComponent
 import com.green.yp.app.messaging.MessagingViewModel
@@ -51,6 +53,7 @@ import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.ui.theme.Green600
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.classifieds_icon_gold
 import org.jetbrains.compose.resources.painterResource
@@ -244,12 +247,13 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                     .align(Alignment.BottomEnd)
                     .padding(end = 8.dp, bottom = 8.dp)
                     .clickable { showMessageModal = true }
-                    .size(18.dp)
+                    .size(24.dp)
             )
 
             ModalSurface(
                 visible = showMessageModal,
-                onDismissRequest = { showMessageModal = false }
+                onDismissRequest = { showMessageModal = false },
+                header = "Sending Message for ${result.title}"
             ) {
                 MessageComponent(
                     draft = draft,
@@ -278,14 +282,30 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
             sendErrorMessage?.let { errorText ->
                 AlertDialog(
                     onDismissRequest = { sendErrorMessage = null },
-                    onConfirmClick = { sendErrorMessage = null },
-                    title = "Message Failed",
-                    text = errorText,
-                    confirmButtonText = "OK",
-                    dismissButtonText = null,
                     containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    textContentColor = Color.DarkGray,
+                    title = {
+                        Text(
+                            text = "Message Failed",
+                            color = Green600
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = errorText,
+                            color = Color.Red
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = { sendErrorMessage = null },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Green600,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("OK")
+                        }
+                    }
                 )
             }
         }

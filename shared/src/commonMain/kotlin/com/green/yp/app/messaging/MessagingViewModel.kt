@@ -24,6 +24,7 @@ class MessagingViewModel(
 ) : ViewModel() {
     companion object {
         private const val SEND_MESSAGE_GENERIC_ERROR = "There was an error sending your message. Please try again later"
+        private const val SEND_MESSAGE_VALIDATION_ERROR = "Invalid message input, please check your inputs and try again"
     }
     private val log = Logger.withTag("green.yp.app.messaging.MessagingViewModel")
 
@@ -48,17 +49,7 @@ class MessagingViewModel(
     fun updateDraft(
         transform: (MessageDraft) -> MessageDraft
     ) {
-        updateState {
-            val newDraft = transform(this)
-            newDraft.copy(
-                companyName = newDraft.companyName?.trimEnd(),
-                emailAddress = newDraft.emailAddress.trimEnd(),
-                name = newDraft.name.trimEnd(),
-                phoneNumber = newDraft.phoneNumber.trimEnd(),
-                subject = newDraft.subject.trimEnd(),
-                message = newDraft.message.trimEnd()
-            )
-        }
+        updateState { transform(this) }
     }
 
     fun sendContactMessage(
@@ -73,9 +64,7 @@ class MessagingViewModel(
                     proMessage = buildProfessionalLeadRequest(searchResponse),
                     onResult = onResult
                 )
-            }
-
-            else -> {
+            }else -> {
                 sendContactMessage(
                     messageType = MessageRequestType.CLASSIFIED_AD_EMAIL,
                     classifiedId = searchResponse.externId,
@@ -144,10 +133,7 @@ class MessagingViewModel(
         val statusCode = responseError?.response?.status?.value
 
         return when {
-            statusCode in 400..499 -> throwable.message
-                ?.trim()
-                ?.takeIf { it.isNotBlank() }
-                ?: SEND_MESSAGE_GENERIC_ERROR
+            statusCode in 400..499 -> SEND_MESSAGE_VALIDATION_ERROR
 
             statusCode in 500..599 -> SEND_MESSAGE_GENERIC_ERROR
 

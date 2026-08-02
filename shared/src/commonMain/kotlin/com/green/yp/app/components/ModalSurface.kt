@@ -7,11 +7,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -35,7 +37,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.green.yp.app.ui.theme.DarkGold
+import com.green.yp.app.ui.theme.Gold500
+import com.green.yp.app.ui.theme.Green700
 
 @Composable
 fun ModalSurface(
@@ -49,6 +52,7 @@ fun ModalSurface(
     shape: RoundedCornerShape = RoundedCornerShape(28.dp),
     containerColor: Color = Color.White,
     tonalElevation: Dp = 8.dp,
+    header: String = "",
     content: @Composable BoxScope.() -> Unit
 ) {
     if (!visible) return
@@ -90,27 +94,39 @@ fun ModalSurface(
                     tonalElevation = tonalElevation
                 ) {
 
-                    Box(
-                        modifier = Modifier.padding(24.dp)
-                    ) {
-                        IconButton(
-                            onClick = onDismissRequest,
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        Row(
                             modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .offset(y = (-8).dp)
+                                .fillMaxWidth()
+                                .offset(y = (-6).dp)
                                 .zIndex(1f),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = DarkGold,
-                                contentColor = Color.Red
-                            )
+                            verticalAlignment = Alignment.Top
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close"
+                            IconButton(
+                                onClick = onDismissRequest,
+                                modifier = Modifier.offset(x = (-6).dp),
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = Gold500,
+                                    contentColor = Color.Red
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close"
+                                )
+                            }
+
+                            Text(
+                                text = header,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Green700,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 8.dp, top = 8.dp)
                             )
                         }
 
-                        Box(modifier = Modifier.padding(top = 52.dp)) {
+                        Box(modifier = Modifier.padding(top = 12.dp)) {
                             content()
                         }
                     }
