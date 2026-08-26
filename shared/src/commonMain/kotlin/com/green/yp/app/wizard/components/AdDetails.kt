@@ -1,8 +1,6 @@
 package com.green.yp.app.wizard.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,12 +29,15 @@ import com.green.yp.app.components.ChipItem
 import com.green.yp.app.components.ChipSelector
 import com.green.yp.app.components.DropdownComponent
 import com.green.yp.app.components.DropdownItem
+import com.green.yp.app.components.generated.components.textfield.OutlinedTextField
+import com.green.yp.app.components.generated.components.textfield.OutlinedTextFieldDefaults
 import com.green.yp.app.enum.PricePerEnum
 import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.dto.classified.ClassifiedCategory
 import com.green.yp.app.shared.repository.ClassifiedReferenceRepository
 import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.ui.theme.Gold500
 import com.green.yp.app.wizard.ClassifiedDraft
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.uuid.ExperimentalUuidApi
@@ -53,6 +53,13 @@ fun AdDetails(
 ) {
     val categories by viewModel.categories.collectAsState()
     
+    val textFieldColors = OutlinedTextFieldDefaults.colors().copy(
+        focusedOutlineColor = Gold500,
+        unfocusedOutlineColor = DarkGreen,
+        focusedLabelColor = Gold500,
+        unfocusedLabelColor = DarkGreen
+    )
+
     val initialPrice = draft.price
     var priceInput by remember(initialPrice) { 
         mutableStateOf(initialPrice?.let { 
@@ -120,7 +127,8 @@ fun AdDetails(
                 prefix = { Text("$") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = textFieldColors
             )
         }
 
@@ -156,7 +164,8 @@ fun AdDetails(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = textFieldColors
             )
         }
 
@@ -172,7 +181,8 @@ fun AdDetails(
                     onDraftChange(draft.copy(description = it))
                 },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                minLines = 3
+                minLines = 3,
+                colors = textFieldColors
             )
         }
     }

@@ -21,7 +21,7 @@ data class ClassifiedPaymentResponse(
     @SerialName("receiptNumber")
     val receiptNumber: String,
     @SerialName("errorStatusCode")
-    val errorStatusCode: String,
+    val errorStatusCode: String?,
     @SerialName("errorDetail")
-    val errorDetail: String
+    val errorDetail: String?
 )

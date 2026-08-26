@@ -9,7 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,8 +24,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.green.yp.app.components.DropdownComponent
 import com.green.yp.app.components.DropdownItem
+import com.green.yp.app.components.generated.components.textfield.OutlinedTextField
+import com.green.yp.app.components.generated.components.textfield.OutlinedTextFieldDefaults
 import com.green.yp.app.enum.StateEnum
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.ui.theme.Gold500
 import com.green.yp.app.wizard.ClassifiedDraft
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -42,6 +44,13 @@ fun AdLocation(
     val city = draft.city
     val state = draft.state
     val zipCode = draft.postalCode
+
+    val textFieldColors = OutlinedTextFieldDefaults.colors().copy(
+        focusedOutlineColor = Gold500,
+        unfocusedOutlineColor = DarkGreen,
+        focusedLabelColor = Gold500,
+        unfocusedLabelColor = DarkGreen
+    )
 
     val stateOptions = remember {
         StateEnum.entries.map {
@@ -97,7 +106,8 @@ fun AdLocation(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = textFieldColors
             )
         }
 
@@ -114,7 +124,8 @@ fun AdLocation(
                     onDraftChange(draft.copy(city = it))
                 },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = textFieldColors
             )
         }
 
@@ -154,6 +165,7 @@ fun AdLocation(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                colors = textFieldColors,
                 supportingText = {
                     val isValid = zipCode.matches(Regex("""^(\d{5}(-\d{4})?|\d{9})$"""))
                     if (zipCode.isNotEmpty() && !isValid) {

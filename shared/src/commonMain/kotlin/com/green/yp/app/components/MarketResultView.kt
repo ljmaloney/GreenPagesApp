@@ -44,6 +44,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.green.yp.app.components.view.ClassifiedView
+import com.green.yp.app.components.view.ProfessionalProfileView
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
@@ -59,6 +61,24 @@ fun MarketResultView(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
+    if (result.recordType == SearchRecordType.GREEN_PRO) {
+        ProfessionalProfileView().renderView(
+            result = result,
+            modifier = modifier,
+            onClick = onClick
+        )
+        return
+    }
+
+    if (result.recordType == SearchRecordType.CLASSIFIED) {
+        ClassifiedView().renderView(
+            result = result,
+            modifier = modifier,
+            onClick = onClick
+        )
+        return
+    }
+
     val uriHandler = LocalUriHandler.current
 
     Box(
@@ -107,12 +127,12 @@ fun MarketResultView(
 
                         Column {
                             Text(
-                                text = result.businessName,
+                                text = result.businessName.orEmpty(),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = DarkGreen,
                                 fontWeight = FontWeight.Bold
                             )
-                            if (!result.title.isNullOrBlank() && !result.title.equals(result.businessName)) {
+                            if (result.title.isNotBlank() && result.title != result.businessName) {
                                 Text(
                                     text = result.title,
                                     style = MaterialTheme.typography.bodyMedium,
@@ -168,8 +188,8 @@ fun MarketResultView(
                             Text(
                                 text = if (isFullAddressShown) {
                                     listOfNotNull(
-                                        result.addressLine1,
-                                        result.addressLine2.takeIf { !it.isNullOrBlank() },
+                                        result.addressLine1?.takeIf { it.isNotBlank() },
+                                        result.addressLine2?.takeIf { it.isNotBlank() },
                                         "${result.city}, ${result.state} ${result.postalCode}"
                                     ).joinToString("\n")
                                 } else {

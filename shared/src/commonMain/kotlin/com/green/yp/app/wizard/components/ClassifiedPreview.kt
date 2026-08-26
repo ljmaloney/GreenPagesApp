@@ -34,10 +34,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.green.yp.app.shared.dto.classified.ClassifiedAdType
 import com.green.yp.app.shared.dto.classified.ClassifiedResponse
 import com.green.yp.app.shared.dto.classified.ImageGallery
+import com.green.yp.app.shared.viewmodel.ClassifiedReferenceViewModel
 import com.green.yp.app.shared.viewmodel.ClassifiedViewModel
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.utils.formatCurrency
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -46,10 +49,14 @@ import kotlin.uuid.Uuid
 fun ClassifiedPreview(
     classifiedId: Uuid,
     viewModel: ClassifiedViewModel,
+    referenceViewModel: ClassifiedReferenceViewModel,
     modifier: Modifier = Modifier
 ) {
     val classified by viewModel.createdAd.collectAsState()
     val images by viewModel.imageGallery.collectAsState()
+
+    // Get ad type from reference view model
+    val adType = classified?.let { referenceViewModel.getAdTypeById(it.adTypeId) }
 
     LaunchedEffect(classifiedId) {
         viewModel.getClassified(classifiedId)
@@ -59,14 +66,17 @@ fun ClassifiedPreview(
     ClassifiedPreviewContent(
         classified = classified,
         images = images,
+        adType = adType,
         modifier = modifier
     )
 }
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ClassifiedPreviewContent(
     classified: ClassifiedResponse?,
     images: List<ImageGallery>,
+    adType: ClassifiedAdType? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -112,6 +122,16 @@ fun ClassifiedPreviewContent(
                 }
             }
 
+            // Display selected Ad Type card
+            adType?.let {
+                ClassifiedAdTypeCard(
+                    adType = it,
+                    isSelected = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {} // View only
+                )
+            }
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -128,7 +148,7 @@ fun ClassifiedPreviewContent(
                     )
 
                     Text(
-                        text = "$${classified.price} ${classified.perUnitType}",
+                        text = "$${classified.price.formatCurrency()} ${classified.perUnitType}",
                         style = MaterialTheme.typography.titleLarge,
                         color = DarkGreen,
                         fontWeight = FontWeight.Bold
@@ -207,11 +227,27 @@ fun ClassifiedPreviewPreview() {
         ImageGallery("bales2.jpg", "Close up of hay quality", "https://example.com/image2.jpg")
     )
 
+    val sampleAdType = ClassifiedAdType(
+        adTypeId = Uuid.random(),
+        createDate = "",
+        active = true,
+        defaultPackage = false,
+        adTypeName = "Professional",
+        monthlyPrice = 19.99,
+        threeMonthPrice = 50.0,
+        features = com.green.yp.app.shared.dto.classified.ClassifiedAdFeatures(
+            features = listOf("Feature 1", "Feature 2"),
+            maxImages = 5,
+            protectContact = true
+        )
+    )
+
     MaterialTheme {
         Surface {
             ClassifiedPreviewContent(
                 classified = sampleClassified,
-                images = sampleImages
+                images = sampleImages,
+                adType = sampleAdType
             )
         }
     }

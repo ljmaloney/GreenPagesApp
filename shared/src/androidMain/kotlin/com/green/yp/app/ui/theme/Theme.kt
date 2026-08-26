@@ -51,7 +51,7 @@ fun GreenPagesTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = greenPagesTypography,
         content = content
     )
 }

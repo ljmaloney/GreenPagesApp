@@ -25,6 +25,9 @@
             android:exported="false"
             android:name="com.green.yp.app.MainActivity">
         </activity>
+        <meta-data
+            android:name="sqip.SQUARE_APPLICATION_ID"
+            android:value="${SQUARE_APPLICATION_ID}" />
     </application>
 
 </manifest>

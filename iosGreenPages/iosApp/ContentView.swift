@@ -4,7 +4,10 @@ import Shared
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Self.Context) -> UIViewController {
-        MainViewControllerKt.MainViewController(pickerDelegate: IOSPickerBridge.instance)
+        MainViewControllerKt.MainViewController(
+            pickerDelegate: IOSPickerBridge.instance,
+            paymentBridge: SquarePaymentBridge.shared
+        )
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Self.Context) {}
