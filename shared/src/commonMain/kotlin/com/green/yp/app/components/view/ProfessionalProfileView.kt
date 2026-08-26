@@ -2,6 +2,7 @@ package com.green.yp.app.components.view
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
@@ -26,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,19 +42,45 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.green.yp.app.components.ModalSurface
+import com.green.yp.app.components.generated.components.AlertDialog as AppAlertDialog
 import com.green.yp.app.components.generated.components.card.CardDefaults
 import com.green.yp.app.components.generated.components.card.OutlinedCard
+import com.green.yp.app.messaging.MessageComponent
+import com.green.yp.app.messaging.MessageDraft
+import com.green.yp.app.messaging.MessagingViewModel
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
+import greenpagesapp.shared.generated.resources.Res
+import greenpagesapp.shared.generated.resources.professional_icon_gold
+import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 
 fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer {
     @Composable
     override fun renderView(result: SearchResponseDTO, modifier: Modifier?, onClick: () -> Unit) {
+        val isPreview = LocalInspectionMode.current
+        val messagingViewModel: MessagingViewModel? = if (isPreview) null else koinViewModel()
+        var previewDraft by remember(result.title) {
+            mutableStateOf(
+                MessageDraft(
+                    emailAddress = "",
+                    name = "",
+                    phoneNumber = "",
+                    subject = result.title,
+                    message = ""
+                )
+            )
+        }
+        val draft = messagingViewModel?.state?.collectAsState()?.value ?: previewDraft
+        var showMessageModal by remember { mutableStateOf(false) }
+        var sendErrorMessage by remember { mutableStateOf<String?>(null) }
         val uriHandler = LocalUriHandler.current
 
         Box(
@@ -274,6 +303,73 @@ fun ProfessionalProfileView(): MarketPlaceViewRenderer = object : MarketPlaceVie
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
+
+            Image(
+                painter = painterResource(Res.drawable.professional_icon_gold),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(x = (-6).dp)
+                    .offset(y = (-10).dp)
+                    .size(28.dp)
+            )
+
+            if (!result.emailAddress.isNullOrBlank()) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Message,
+                    contentDescription = null,
+                    tint = DarkGreen,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 8.dp, bottom = 8.dp)
+                        .clickable { showMessageModal = true }
+                        .size(24.dp)
+                )
+            }
+
+            ModalSurface(
+                visible = showMessageModal,
+                onDismissRequest = { showMessageModal = false },
+                header = "Sending Message for ${result.title}"
+            ) {
+                MessageComponent(
+                    draft = draft,
+                    isScrollable = false,
+                    onDraftChange = { updatedDraft ->
+                        messagingViewModel?.updateDraft { updatedDraft } ?: run {
+                            previewDraft = updatedDraft
+                        }
+                    },
+                    subject = result.title,
+                    onSendMessage = {
+                        messagingViewModel?.sendContactMessage(result) { sendResult ->
+                            sendResult.onSuccess {
+                                showMessageModal = false
+                            }
+                            sendResult.onFailure { throwable ->
+                                sendErrorMessage = messagingViewModel.getSendMessageError(throwable)
+                            }
+                        } ?: run {
+                            showMessageModal = false
+                        }
+                    },
+                    onCancel = { showMessageModal = false }
+                )
+            }
+
+            sendErrorMessage?.let { errorText ->
+                AppAlertDialog(
+                    onDismissRequest = { sendErrorMessage = null },
+                    onConfirmClick = { sendErrorMessage = null },
+                    title = "Message Failed",
+                    text = errorText,
+                    confirmButtonText = "OK",
+                    dismissButtonText = null,
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black,
+                    textContentColor = Color.DarkGray,
+                )
             }
         }
     }

@@ -52,6 +52,18 @@ val Green200: Color = Color(0xFFC2F5DA)
 val Green100: Color = Color(0xFFD0FBE9)
 val Green50: Color = Color(0xFFE0FAEC)
 
+val Gold950: Color = Color(0xFF4A3A0A)
+val Gold900: Color = Color(0xFF6B520A)
+val Gold800: Color = Color(0xFF7A5E0B)
+val Gold700: Color = Color(0xFF91710D)
+val Gold600: Color = Color(0xFFB58C10)
+val Gold500: Color = Color(0xFFC99C12)
+val Gold400: Color = Color(0xFFE2B636)
+val Gold300: Color = Color(0xFFEDCF7A)
+val Gold200: Color = Color(0xFFF7E7BB)
+val Gold100: Color = Color(0xFFFBEFCC)
+val Gold50: Color = Color(0xFFFDF5DE)
+
 @Immutable
 data class Colors(
     val primary: Color,

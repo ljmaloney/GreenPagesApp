@@ -151,46 +151,6 @@ fun ClassifiedAdTypeCard(
                         )
                     }
                 }
-
-                if (adType.features.maxImages > 0) {
-                    Row(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = DarkGreen,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Up to ${adType.features.maxImages} images",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.DarkGray
-                        )
-                    }
-                }
-
-                if (adType.features.protectContact) {
-                    Row(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = DarkGreen,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Protected contact info",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.DarkGray
-                        )
-                    }
-                }
             }
         }
     }

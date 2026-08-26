@@ -17,14 +17,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,22 +40,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.green.yp.app.PreviewContext
+import com.green.yp.app.components.ModalSurface
+import com.green.yp.app.messaging.MessageDraft
+import com.green.yp.app.messaging.MessageComponent
+import com.green.yp.app.messaging.MessagingViewModel
 import com.green.yp.app.shared.dto.search.SearchRecordType
 import com.green.yp.app.shared.dto.search.SearchResponseDTO
 import com.green.yp.app.ui.theme.DarkGold
 import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.ui.theme.Green600
 import greenpagesapp.shared.generated.resources.Res
 import greenpagesapp.shared.generated.resources.classifieds_icon_gold
-import greenpagesapp.shared.generated.resources.classifieds_icon_hanging
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 
 fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer {
     @Composable
     override fun renderView(result: SearchResponseDTO, modifier: Modifier?, onClick: () -> Unit) {
+        val isPreview = LocalInspectionMode.current
+        val messagingViewModel: MessagingViewModel? = if (isPreview) null else koinViewModel()
+        var previewDraft by remember(result.title) {
+            mutableStateOf(
+                MessageDraft(
+                    emailAddress = "",
+                    name = "",
+                    phoneNumber = "",
+                    subject = result.title,
+                    message = ""
+                )
+            )
+        }
+        val draft = messagingViewModel?.state?.collectAsState()?.value ?: previewDraft
+        var showMessageModal by remember { mutableStateOf(false) }
+        var sendErrorMessage by remember { mutableStateOf<String?>(null) }
+
         Box(
             modifier = (modifier ?: Modifier)
                 .background(Color.White)
@@ -209,6 +237,77 @@ fun ClassifiedView(): MarketPlaceViewRenderer = object : MarketPlaceViewRenderer
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Message,
+                contentDescription = null,
+                tint = DarkGreen,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 8.dp, bottom = 8.dp)
+                    .clickable { showMessageModal = true }
+                    .size(24.dp)
+            )
+
+            ModalSurface(
+                visible = showMessageModal,
+                onDismissRequest = { showMessageModal = false },
+                header = "Sending Message for ${result.title}"
+            ) {
+                MessageComponent(
+                    draft = draft,
+                    isScrollable = false,
+                    onDraftChange = { updatedDraft ->
+                        messagingViewModel?.updateDraft { updatedDraft } ?: run {
+                            previewDraft = updatedDraft
+                        }
+                    },
+                    subject = result.title,
+                    onSendMessage = {
+                        messagingViewModel?.sendContactMessage(result) { sendResult ->
+                            sendResult.onSuccess {
+                                showMessageModal = false
+                            }
+                            sendResult.onFailure { throwable ->
+                                sendErrorMessage = messagingViewModel.getSendMessageError(throwable)
+                            }
+                        } ?: run {
+                            showMessageModal = false
+                        }
+                    },
+                    onCancel = { showMessageModal = false }
+                )
+            }
+
+            sendErrorMessage?.let { errorText ->
+                AlertDialog(
+                    onDismissRequest = { sendErrorMessage = null },
+                    containerColor = Color.White,
+                    title = {
+                        Text(
+                            text = "Message Failed",
+                            color = Green600
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = errorText,
+                            color = Color.Red
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = { sendErrorMessage = null },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Green600,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("OK")
+                        }
+                    }
+                )
             }
         }
     }
