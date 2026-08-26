@@ -207,12 +207,13 @@ class ClassifiedWizardViewModel(
                     )
                 }
             }
-            updateState {
+            else {
+                updateState {
                 copy(
                     loading = false,
                     paymentResponse = response,
                     currentStep = ClassifiedWizardStep.PAYMENT_FAILED
-                )
+                )}
             }
         }.onFailure { exception ->
             updateState {
