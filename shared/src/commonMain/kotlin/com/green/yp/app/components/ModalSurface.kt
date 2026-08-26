@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.green.yp.app.ui.theme.DarkGreen
+import com.green.yp.app.ui.theme.Gold100
 import com.green.yp.app.ui.theme.Gray400
 import com.green.yp.app.ui.theme.Gold500
 import com.green.yp.app.ui.theme.Green700
@@ -114,8 +116,8 @@ fun ModalSurface(
                                 onClick = onDismissRequest,
                                 modifier = Modifier.offset(x = (-6).dp),
                                 colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = Gold500,
-                                    contentColor = Color.Red
+                                    containerColor = Gold100,
+                                    contentColor = DarkGreen
                                 )
                             ) {
                                 Icon(
