@@ -12,6 +12,7 @@ import com.green.yp.app.media.AndroidImagePicker
 import com.green.yp.app.media.LocalImagePicker
 import com.green.yp.app.payment.SquarePaymentProcessor
 import com.green.yp.app.shared.di.KoinInitializer
+import com.green.yp.app.shared.util.ActivityHolder
 
 class MainActivity : ComponentActivity() {
     private val imagePicker = AndroidImagePicker(this)
@@ -19,12 +20,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        ActivityHolder.currentActivity = this
 
         KoinInitializer.init()
         setContent {
             CompositionLocalProvider(LocalImagePicker provides imagePicker) {
                 App()
             }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (ActivityHolder.currentActivity == this) {
+            ActivityHolder.currentActivity = null
         }
     }
 

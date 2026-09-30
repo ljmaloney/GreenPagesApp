@@ -33,22 +33,13 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
-//    iosArm64().binaries.framework {
-//        baseName = "Shared"
-//        isStatic = false
-//    }
-//
-//    iosSimulatorArm64().binaries.framework {
-//        baseName = "Shared"
-//        isStatic = false
-//    }
-
     cocoapods {
         summary = "GreenYP shared module"
         homepage = "https://greenyp.com"
 
         version = "1.0"
         ios.deploymentTarget = "16.0"
+        podfile = project.file("../iosGreenPages/Podfile")
 
         framework {
             baseName = "Shared"
@@ -126,4 +117,33 @@ dependencies {
     add("kspAndroid", libs.ktorfit.lib)
     add("kspIosArm64", libs.ktorfit.lib)
     add("kspIosSimulatorArm64", libs.ktorfit.lib)
+}
+
+tasks.matching { it.name.startsWith("podGen") }.configureEach {
+    outputs.upToDateWhen { false }
+    doLast {
+        val podfile = file("build/cocoapods/synthetic/ios/Podfile")
+        if (podfile.exists()) {
+            podfile.writeText("""
+                source 'https://cdn.cocoapods.org'
+                target 'ios' do
+                	use_frameworks!
+                	platform :ios, '16.0'
+                	pod 'SquareBuyerVerificationSDK', '1.6.7'
+                	pod 'SquareInAppPaymentsSDK', '1.6.7'
+                end
+
+                post_install do |installer|
+                  installer.pods_project.targets.each do |target|
+                    target.build_configurations.each do |config|
+                      config.build_settings['CODE_SIGN_IDENTITY'] = ''
+                      config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+                      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+                      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+                    end
+                  end
+                end
+            """.trimIndent())
+        }
+    }
 }

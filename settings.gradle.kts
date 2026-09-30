@@ -32,5 +32,12 @@ dependencyResolutionManagement {
     }
 }
 
-include(":androidApp")
 include(":shared")
+
+val isCocoaPodsBuild = System.getenv("PODS_ROOT") != null ||
+    settings.startParameter.projectProperties.containsKey("kotlin.native.cocoapods.platform") ||
+    settings.startParameter.taskNames.any { it.contains("syncFramework") || it.contains("pod") }
+
+if (!isCocoaPodsBuild) {
+    include(":androidApp")
+}
